@@ -1,0 +1,174 @@
+{
+  "_meta": {
+    "provincia": "Buenos Aires",
+    "codigo": "bsas",
+    "norma_base": "Código Fiscal Provincia de Buenos Aires - Ley 10.397 (t.o. 2011 y modificatorias)",
+    "decreto_alicuotas": "Ley Impositiva Anual - Última actualización: 2024",
+    "fuente": "FIXTURE - datos de prueba representativos para desarrollo"
+  },
+  "escalas_volumen": {
+    "descripcion": "Categorías por volumen de ingresos brutos anuales acumulados",
+    "categorias": [
+      {
+        "categoria": "Pequeño Contribuyente",
+        "volumen_hasta": 15000000,
+        "modificador": -0.5,
+        "norma_ref": "Art. 207 bis, Código Fiscal PBA"
+      },
+      {
+        "categoria": "Contribuyente General",
+        "volumen_desde": 15000001,
+        "volumen_hasta": 150000000,
+        "modificador": 0,
+        "norma_ref": "Art. 206, Código Fiscal PBA"
+      },
+      {
+        "categoria": "Gran Contribuyente",
+        "volumen_desde": 150000001,
+        "modificador": 1.0,
+        "norma_ref": "Art. 208, Código Fiscal PBA - Resolución ARBA 2/2024"
+      }
+    ]
+  },
+  "actividades": [
+    {
+      "naes": "4711",
+      "descripcion": "Venta al por menor en comercios no especializados con predominio de productos alimenticios",
+      "alicuota_base": 3.0,
+      "norma_ref": "Ley Impositiva 2024, Anexo I, Punto 1.a",
+      "articulo": "Art. 39, inciso a)",
+      "notas": "Incluye supermercados, almacenes, maxikioscos."
+    },
+    {
+      "naes": "4719",
+      "descripcion": "Venta al por menor en comercios no especializados sin predominio de alimentos",
+      "alicuota_base": 3.5,
+      "norma_ref": "Ley Impositiva 2024, Anexo I, Punto 1.b",
+      "articulo": "Art. 39, inciso b)",
+      "notas": "Incluye bazar, ropa, artículos del hogar en comercio general."
+    },
+    {
+      "naes": "4771",
+      "descripcion": "Venta al por menor de prendas y accesorios de vestir",
+      "alicuota_base": 3.5,
+      "norma_ref": "Ley Impositiva 2024, Anexo I, Punto 1.b",
+      "articulo": "Art. 39, inciso b)",
+      "notas": "Indumentaria, calzado, accesorios."
+    },
+    {
+      "naes": "4641",
+      "descripcion": "Venta al por mayor de productos textiles y prendas de vestir",
+      "alicuota_base": 2.5,
+      "norma_ref": "Ley Impositiva 2024, Anexo II, Punto 3",
+      "articulo": "Art. 40, inciso c)",
+      "notas": "Mayoristas del sector textil."
+    },
+    {
+      "naes": "6201",
+      "descripcion": "Desarrollo de software y aplicaciones informáticas",
+      "alicuota_base": 3.0,
+      "norma_ref": "Ley Impositiva 2024, Anexo V, Punto 8",
+      "articulo": "Art. 48, inciso a)",
+      "notas": "Aplica alícuota reducida para empresas inscriptas en el Registro de Empresas TIC."
+    },
+    {
+      "naes": "6920",
+      "descripcion": "Actividades de contabilidad, teneduría de libros y auditoría",
+      "alicuota_base": 4.5,
+      "norma_ref": "Ley Impositiva 2024, Anexo III, Servicios Profesionales",
+      "articulo": "Art. 42, inciso d)",
+      "notas": "Servicios de contadores, auditores, asesores impositivos."
+    },
+    {
+      "naes": "6910",
+      "descripcion": "Actividades jurídicas",
+      "alicuota_base": 4.5,
+      "norma_ref": "Ley Impositiva 2024, Anexo III, Servicios Profesionales",
+      "articulo": "Art. 42, inciso d)",
+      "notas": "Estudios jurídicos, abogados."
+    },
+    {
+      "naes": "4110",
+      "descripcion": "Construcción de edificios residenciales",
+      "alicuota_base": 2.5,
+      "norma_ref": "Ley Impositiva 2024, Anexo IV, Construcción",
+      "articulo": "Art. 44, inciso a)",
+      "notas": "Incluye obras nuevas y refacciones."
+    },
+    {
+      "naes": "4941",
+      "descripcion": "Transporte automotor de cargas",
+      "alicuota_base": 2.0,
+      "norma_ref": "Ley Impositiva 2024, Anexo VI, Punto 2",
+      "articulo": "Art. 50, inciso b)",
+      "notas": "Fletes y logística de cargas en general."
+    },
+    {
+      "naes": "1010",
+      "descripcion": "Elaboración y conservación de carne y productos cárnicos",
+      "alicuota_base": 1.5,
+      "norma_ref": "Ley Impositiva 2024, Anexo VII, Industria",
+      "articulo": "Art. 37, inciso a)",
+      "notas": "Industria frigorífica. Alícuota industrial reducida."
+    },
+    {
+      "naes": "0111",
+      "descripcion": "Cultivo de cereales (excepto arroz), legumbres y semillas oleaginosas",
+      "alicuota_base": 1.0,
+      "norma_ref": "Ley Impositiva 2024, Actividades Agropecuarias",
+      "articulo": "Art. 35, inciso a)",
+      "notas": "Sector primario agropecuario. Posible exención parcial para exportadores."
+    },
+    {
+      "naes": "6612",
+      "descripcion": "Servicios relacionados con la gestión de fondos de inversión",
+      "alicuota_base": 6.0,
+      "norma_ref": "Ley Impositiva 2024, Anexo VIII, Servicios Financieros",
+      "articulo": "Art. 55, inciso a)",
+      "notas": "Actividad financiera. Alícuota diferencial elevada."
+    },
+    {
+      "naes": "5610",
+      "descripcion": "Restaurantes y actividades de servicio de comidas",
+      "alicuota_base": 3.5,
+      "norma_ref": "Ley Impositiva 2024, Anexo I, Gastronomía",
+      "articulo": "Art. 39, inciso e)",
+      "notas": "Bares, restaurantes, cafeterías."
+    },
+    {
+      "naes": "4520",
+      "descripcion": "Mantenimiento y reparación de vehículos automotores",
+      "alicuota_base": 3.5,
+      "norma_ref": "Ley Impositiva 2024, Anexo III, Servicios",
+      "articulo": "Art. 42, inciso a)",
+      "notas": "Talleres mecánicos, chapería y pintura."
+    }
+  ],
+  "beneficios_especiales": [
+    {
+      "tag": "PyME",
+      "descripcion": "Reducción del 20% sobre alícuota base para MiPyMEs inscriptas",
+      "modificador_pct": -20,
+      "norma_ref": "Decreto PBA 1/2023 - Apoyo a MiPyMEs",
+      "articulo": "Art. 3, Decreto 1/2023",
+      "condicion": "Debe acreditar categoría MiPyME vigente ante SEPYME"
+    },
+    {
+      "tag": "Parque Industrial",
+      "descripcion": "Exención del 50% de la alícuota para radicados en Parques Industriales habilitados",
+      "modificador_pct": -50,
+      "norma_ref": "Ley PBA 13.744 - Parques Industriales",
+      "articulo": "Art. 15, Ley 13.744",
+      "condicion": "Debe estar inscripto en el Registro de Parques Industriales del MIPBA"
+    },
+    {
+      "tag": "Exportador",
+      "descripcion": "Las exportaciones directas están exentas de IIBB",
+      "modificador_pct": -100,
+      "aplica_a": "operaciones_exportacion_directa",
+      "norma_ref": "Art. 170, inciso f), Código Fiscal PBA",
+      "articulo": "Art. 170, inciso f)",
+      "condicion": "Solo aplica a las operaciones que acrediten destino exportación"
+    }
+  ]
+}

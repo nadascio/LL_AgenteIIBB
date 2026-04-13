@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Guía de Uso: Senior Tax Audit Agent | Lisicki Litvin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#dad9de",
+                        "primary-container": "#003366",
+                        "primary": "#001e40",
+                        "tertiary-fixed-dim": "#ffb690",
+                        "outline-variant": "#c3c6d1",
+                        "secondary-container": "#e2e2e6",
+                        "on-surface": "#1a1c1f",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "inverse-primary": "#a7c8ff",
+                        "surface": "#f9f9fe",
+                        "on-secondary-container": "#636468",
+                        "on-secondary-fixed-variant": "#45474a",
+                        "on-tertiary-fixed": "#341100",
+                        "surface-container-highest": "#e2e2e7",
+                        "on-tertiary-fixed-variant": "#723610",
+                        "secondary": "#5d5e62",
+                        "inverse-surface": "#2f3034",
+                        "secondary-fixed-dim": "#c5c6ca",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#eeedf2",
+                        "secondary-fixed": "#e2e2e6",
+                        "surface-variant": "#e2e2e7",
+                        "on-error": "#ffffff",
+                        "outline": "#737780",
+                        "on-primary-container": "#799dd6",
+                        "on-tertiary-container": "#d8885c",
+                        "surface-container-high": "#e8e8ed",
+                        "tertiary": "#381300",
+                        "on-primary-fixed": "#001b3c",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#d5e3ff",
+                        "error-container": "#ffdad6",
+                        "background": "#f9f9fe",
+                        "tertiary-fixed": "#ffdbca",
+                        "primary-fixed-dim": "#a7c8ff",
+                        "on-surface-variant": "#43474f",
+                        "on-primary-fixed-variant": "#1f477b",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#3a5f94",
+                        "surface-bright": "#f9f9fe",
+                        "on-background": "#1a1c1f",
+                        "surface-container-low": "#f4f3f8",
+                        "inverse-on-surface": "#f1f0f5",
+                        "on-secondary-fixed": "#191c1e",
+                        "tertiary-container": "#592300"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: #f9f9fe; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="text-on-surface bg-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full flex justify-between items-center px-8 h-16 border-b border-slate-200/20 bg-white/80 backdrop-blur-xl z-50 shadow-[0px_12px_32px_rgba(0,30,64,0.06)]">
+<div class="text-xl font-bold tracking-tight text-[#001e40] dark:text-white">
+            Lisicki Litvin | Tax Audit AI
+        </div>
+<nav class="hidden md:flex items-center space-x-8">
+<a class="text-[#001e40] dark:text-white border-b-2 border-[#001e40] dark:border-blue-500 pb-1 font-bold transition-all duration-200" href="#">Guía de Uso</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#003366] dark:hover:text-blue-300 transition-colors" href="#">Carga de Datos</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#003366] dark:hover:text-blue-300 transition-colors" href="#">Hoja de Ejemplo</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="settings">settings</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="Professional portrait of a male tax consultant in a navy suit against a clean studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuClKT7N3WmWhVjBCb2_GuTe3PGyQ7cQbT1nw3huMlGuiYyNChZM2WtRlk5PF8bU7DPwX1sWiLTqU9pHZAH0qmv9MNmNKIL7tpoIjnsGsdBgQ9uagB_kUSrxL8G3ZwE7i9mCRAXFzmMbl6TN0rml3V-ocgSooadYahqwH6g7aKUUcBAqu53TMli50OAqc7DsBbb78D57vk8YvHUIe75IdkQiFgmH1qjSfXOdNZFHO96unD2ehnMR5Il1O7v26x9tIo7zHb88O_g7pbN3"/>
+</div>
+</div>
+</header>
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] flex flex-col p-4 gap-2 bg-slate-50 dark:bg-slate-950 w-64 border-r border-slate-200/30">
+<div class="mb-6 px-2">
+<h2 class="text-xs uppercase tracking-widest font-semibold text-slate-500">Professional Suite</h2>
+<p class="text-sm font-bold text-primary">Fiscal Control</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/50 rounded-lg transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-white dark:bg-slate-900 text-[#001e40] dark:text-white font-bold shadow-sm rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Auditoría</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/50 rounded-lg transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Reportes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/50 rounded-lg transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Historial</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/50 rounded-lg transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="folder_open">folder_open</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Archivos</span>
+</a>
+</nav>
+<div class="pt-4 border-t border-slate-200/30">
+<button class="w-full bg-primary text-on-primary py-3 rounded-sm text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                Nueva Auditoría
+            </button>
+</div>
+<div class="mt-auto space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-primary rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Ayuda</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-error rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Cerrar Sesión</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 pb-16 px-12 min-h-screen">
+<div class="max-w-6xl mx-auto">
+<!-- Hero Header Section (Asymmetric) -->
+<div class="grid grid-cols-12 gap-8 mb-16 items-center">
+<div class="col-span-12 lg:col-span-7">
+<span class="text-on-surface-variant label-md uppercase tracking-[0.2em] mb-4 block font-semibold">Protocolo de Operación</span>
+<h1 class="text-5xl font-extrabold text-primary mb-6 headline-md tracking-tight">Guía de Uso: <br/>Senior Tax Audit Agent</h1>
+<p class="text-lg text-on-surface-variant body-md leading-relaxed mb-8 max-w-xl">
+                        Este sistema utiliza inteligencia artificial avanzada para el procesamiento de datos fiscales complejos. Siga este protocolo para asegurar la integridad de los resultados y la validación normativa de sus reportes.
+                    </p>
+<div class="flex gap-4">
+<button class="bg-primary text-on-primary px-8 py-4 rounded-sm font-bold flex items-center gap-3 hover:opacity-90 transition-all shadow-[0px_12px_32px_rgba(0,30,64,0.1)]">
+                            Comenzar Auditoría
+                            <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<button class="bg-secondary-container text-primary px-8 py-4 rounded-sm font-bold hover:bg-surface-container-high transition-all">
+                            Ver Tutorial
+                        </button>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-5 relative">
+<div class="aspect-square bg-primary-container rounded-full overflow-hidden shadow-2xl relative border-[12px] border-white">
+<img class="w-full h-full object-cover opacity-80 mix-blend-overlay" data-alt="High-end office workspace with digital tablet showing complex tax data analytics and financial graphs in soft natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAn2c2GNcuaa9K3TyC0GYn_85OgXFhTOd070x12u7yu0UKUABnpld5xVOJzoNLJ0rAEQAbTV14qPTnyCSTIjYZeU6Buy1CsklxXUFu2JZwdyH5RbpAEZa4Izs9XssCDJbK0lqtS5yw-o2jrvYGOUqgF79tDIdj40Ol6poFHQZTV1jSuc76b9te2PgUJ0qltz4acypnUi9EDG5KbEdoDRSWxKrdl5FO_Sode9aktIc3xHCNyRmhDQNDEcR6jTdO69oebYHlPLFmfr-r6"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="bg-white/10 backdrop-blur-md p-8 rounded-xl border border-white/20">
+<span class="material-symbols-outlined text-white text-7xl" data-icon="article" style="font-variation-settings: 'FILL' 1;">article</span>
+</div>
+</div>
+</div>
+<!-- Decorative Element -->
+<div class="absolute -bottom-6 -left-6 bg-white p-6 shadow-xl rounded-lg border border-slate-100 flex items-center gap-4">
+<div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-white" data-icon="bolt">bolt</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Efficiency</p>
+<p class="text-lg font-bold text-primary">IA Validada</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Bento Grid -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Section 1: Estructura de Datos (Wide Content Sheet) -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest p-10 rounded-xl shadow-[0px_12px_32px_rgba(0,30,64,0.06)]">
+<div class="flex items-start gap-6">
+<div class="bg-surface-container-low p-4 rounded-lg">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="schema">schema</span>
+</div>
+<div class="flex-1">
+<h3 class="text-2xl font-bold text-primary mb-4 headline-md">1. Estructura de Datos</h3>
+<p class="text-on-surface-variant body-md mb-8">El motor de auditoría requiere una estructura rígida para garantizar el cumplimiento normativo. Asegúrese de que su archivo CSV/Excel contenga las <strong>8 columnas obligatorias</strong>:</p>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+<div class="p-4 bg-surface-container-low rounded-lg border-b-2 border-transparent hover:border-primary transition-all">
+<p class="text-xs font-bold text-slate-500 mb-1">C_ID</p>
+<p class="text-sm font-semibold text-primary">CUIT Emisor</p>
+</div>
+<div class="p-4 bg-surface-container-low rounded-lg border-b-2 border-transparent hover:border-primary transition-all">
+<p class="text-xs font-bold text-slate-500 mb-1">D_TX</p>
+<p class="text-sm font-semibold text-primary">Fecha Op.</p>
+</div>
+<div class="p-4 bg-surface-container-low rounded-lg border-b-2 border-transparent hover:border-primary transition-all">
+<p class="text-xs font-bold text-slate-500 mb-1">V_NET</p>
+<p class="text-sm font-semibold text-primary">Monto Neto</p>
+</div>
+<div class="p-4 bg-surface-container-low rounded-lg border-b-2 border-transparent hover:border-primary transition-all">
+<p class="text-xs font-bold text-slate-500 mb-1">T_IVA</p>
+<p class="text-sm font-semibold text-primary">Alícuota</p>
+</div>
+<div class="p-4 bg-surface-container-low rounded-lg border-b-2 border-transparent hover:border-primary transition-all">
+<p class="text-xs font-bold text-slate-500 mb-1">C_REG</p>
+<p class="text-sm font-semibold text-primary">Cat. Fiscal</p>
+</div>
+<div class="p-4 bg-surface-container-low rounded-lg border-b-2 border-transparent hover:border-primary transition-all">
+<p class="text-xs font-bold text-slate-500 mb-1">J_COD</p>
+<p class="text-sm font-semibold text-primary">Jurisdicción</p>
+</div>
+<div class="p-4 bg-surface-container-low rounded-lg border-b-2 border-transparent hover:border-primary transition-all">
+<p class="text-xs font-bold text-slate-500 mb-1">A_CODE</p>
+<p class="text-sm font-semibold text-primary">Cód. Actividad</p>
+</div>
+<div class="p-4 bg-surface-container-low rounded-lg border-b-2 border-transparent hover:border-primary transition-all">
+<p class="text-xs font-bold text-slate-500 mb-1">S_ST</p>
+<p class="text-sm font-semibold text-primary">Status</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 2: Referencia de Casos (Tall Sidebar Style) -->
+<div class="col-span-12 lg:col-span-4 bg-primary text-on-primary p-10 rounded-xl shadow-xl flex flex-col justify-between">
+<div>
+<div class="bg-white/10 w-14 h-14 rounded-lg flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-3xl" data-icon="library_books">library_books</span>
+</div>
+<h3 class="text-2xl font-bold mb-4 headline-md">2. Referencia de Casos</h3>
+<p class="text-on-primary-container body-md leading-relaxed mb-6">
+                            Gestión de CUITs multi-actividad: Nuestra IA detecta automáticamente discrepancias entre la actividad principal declarada y las facturas emitidas.
+                        </p>
+<ul class="space-y-4">
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="check_circle">check_circle</span>
+<span class="text-sm font-medium">Auto-mapping de nomencladores</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="check_circle">check_circle</span>
+<span class="text-sm font-medium">Validación de umbrales AFIP</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-primary-container" data-icon="check_circle">check_circle</span>
+<span class="text-sm font-medium">Alertas de riesgo sistémico</span>
+</li>
+</ul>
+</div>
+<div class="mt-8 pt-8 border-t border-white/10">
+<a class="text-sm font-bold flex items-center gap-2 hover:translate-x-2 transition-transform" href="#">
+                            Descargar Vademécum Fiscal
+                            <span class="material-symbols-outlined" data-icon="download">download</span>
+</a>
+</div>
+</div>
+<!-- Section 3: Generación de Reporte (Bottom Wide Card) -->
+<div class="col-span-12 bg-surface-container-low border border-outline-variant/20 p-10 rounded-xl relative overflow-hidden">
+<div class="flex flex-col md:flex-row items-center gap-10">
+<div class="flex-1">
+<h3 class="text-2xl font-bold text-primary mb-4 headline-md">3. Generación de Reporte</h3>
+<p class="text-on-surface-variant body-md mb-6 max-w-2xl">
+                                El paso final consolida los hallazgos en un documento ejecutivo con validez legal interna. El sistema genera una matriz de riesgo y sugerencias de ajustes contables inmediatos.
+                            </p>
+<div class="flex flex-wrap gap-4">
+<span class="px-3 py-1 bg-white rounded-full text-xs font-bold text-primary border border-outline-variant/30 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                    PDF Ejecutivo
+                                </span>
+<span class="px-3 py-1 bg-white rounded-full text-xs font-bold text-primary border border-outline-variant/30 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                    JSON para ERP
+                                </span>
+<span class="px-3 py-1 bg-white rounded-full text-xs font-bold text-primary border border-outline-variant/30 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                    Excel de Conciliación
+                                </span>
+</div>
+</div>
+<div class="w-full md:w-auto">
+<div class="bg-white p-6 rounded-lg shadow-lg border border-slate-100 flex flex-col items-center gap-4">
+<span class="material-symbols-outlined text-5xl text-primary" data-icon="task_alt">task_alt</span>
+<div class="text-center">
+<p class="text-xs font-bold text-slate-400 uppercase">Estado de Sistema</p>
+<p class="text-lg font-bold text-primary">Listo para Procesar</p>
+</div>
+<button class="w-full bg-primary text-on-primary py-2 rounded-sm font-bold text-sm">Ejecutar Batch</button>
+</div>
+</div>
+</div>
+<!-- Decorative Background Icon -->
+<span class="material-symbols-outlined absolute -bottom-10 -right-10 text-[15rem] text-slate-200/40 select-none pointer-events-none" data-icon="receipt_long">receipt_long</span>
+</div>
+</div>
+<!-- Footer Compliance Note -->
+<footer class="mt-16 text-center border-t border-slate-200 pt-8">
+<p class="text-xs text-on-surface-variant font-medium tracking-wide">
+                    © 2024 Lisicki Litvin &amp; Asociados. El uso de esta herramienta está sujeto a los términos de confidencialidad y secreto profesional.
+                </p>
+</footer>
+</div>
+</main>
+</body></html>

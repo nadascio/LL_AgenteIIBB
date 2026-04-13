@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Carga Masiva de Comprobantes | Lisicki Litvin</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#dad9de",
+                    "primary-container": "#003366",
+                    "primary": "#001e40",
+                    "tertiary-fixed-dim": "#ffb690",
+                    "outline-variant": "#c3c6d1",
+                    "secondary-container": "#e2e2e6",
+                    "on-surface": "#1a1c1f",
+                    "on-error-container": "#93000a",
+                    "on-secondary": "#ffffff",
+                    "inverse-primary": "#a7c8ff",
+                    "surface": "#f9f9fe",
+                    "on-secondary-container": "#636468",
+                    "on-secondary-fixed-variant": "#45474a",
+                    "on-tertiary-fixed": "#341100",
+                    "surface-container-highest": "#e2e2e7",
+                    "on-tertiary-fixed-variant": "#723610",
+                    "secondary": "#5d5e62",
+                    "inverse-surface": "#2f3034",
+                    "secondary-fixed-dim": "#c5c6ca",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container": "#eeedf2",
+                    "secondary-fixed": "#e2e2e6",
+                    "surface-variant": "#e2e2e7",
+                    "on-error": "#ffffff",
+                    "outline": "#737780",
+                    "on-primary-container": "#799dd6",
+                    "on-tertiary-container": "#d8885c",
+                    "surface-container-high": "#e8e8ed",
+                    "tertiary": "#381300",
+                    "on-primary-fixed": "#001b3c",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#d5e3ff",
+                    "error-container": "#ffdad6",
+                    "background": "#f9f9fe",
+                    "tertiary-fixed": "#ffdbca",
+                    "primary-fixed-dim": "#a7c8ff",
+                    "on-surface-variant": "#43474f",
+                    "on-primary-fixed-variant": "#1f477b",
+                    "on-primary": "#ffffff",
+                    "surface-tint": "#3a5f94",
+                    "surface-bright": "#f9f9fe",
+                    "on-background": "#1a1c1f",
+                    "surface-container-low": "#f4f3f8",
+                    "inverse-on-surface": "#f1f0f5",
+                    "on-secondary-fixed": "#191c1e",
+                    "tertiary-container": "#592300"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .data-table-input {
+            @apply w-full bg-transparent border-0 border-b border-outline-variant/20 focus:ring-0 focus:border-primary transition-all px-1 py-2 text-sm;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f4f3f8;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c3c6d1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #737780;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full flex justify-between items-center px-8 h-16 bg-white/80 backdrop-blur-xl z-50 shadow-[0px_12px_32px_rgba(0,30,64,0.06)]">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tight text-[#001e40]">Lisicki Litvin | Tax Audit AI</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-slate-500 font-medium hover:text-[#003366] transition-colors" href="#">Guía de Uso</a>
+<a class="text-[#001e40] border-b-2 border-[#001e40] pb-1 font-bold" href="#">Carga de Datos</a>
+<a class="text-slate-500 font-medium hover:text-[#003366] transition-colors" href="#">Hoja de Ejemplo</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:text-primary transition-colors"><span class="material-symbols-outlined">notifications</span></button>
+<button class="p-2 text-slate-500 hover:text-primary transition-colors"><span class="material-symbols-outlined">settings</span></button>
+<div class="w-8 h-8 rounded-full overflow-hidden ml-2 bg-slate-200">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="professional male headshot in business attire with neutral background for corporate profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCR2LCyIlNBiMrkzNLSY51gwqi0FHBSCfOxFdZ8upa85-tls0cQ0IhlyB0_TAYSNkTbLXQDEQR0c8CV_3fh8tcKRV5rWKpCz1apB3Nx5RZZJZJ2qQjRnLKclvgDLVorY3lDzqN_tRh9z76QDGEVg3gpMRvBUzB6TfzYZwEh7X0kKh3CgGpjlsNPI0O9uqjqsBCIfMg0AFEeSOue_R96H5lN3lDkHtb75NcolEAxJiepdv5M6jYR6t_-i0VGN5PxRCptSqyGno-iy2uk"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 flex flex-col p-4 gap-2 bg-slate-50 border-r border-slate-200/30">
+<div class="mb-6 px-2">
+<h2 class="text-xs uppercase tracking-widest font-semibold text-on-surface-variant">Fiscal Control</h2>
+<p class="text-[10px] text-slate-400">Professional Suite</p>
+</div>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-lg hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-white text-[#001e40] font-bold shadow-sm rounded-lg" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">fact_check</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Auditoría</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-lg hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Reportes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-lg hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Historial</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-lg hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">folder_open</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Archivos</span>
+</a>
+<div class="mt-auto flex flex-col gap-2">
+<button class="bg-primary text-on-primary px-4 py-3 rounded-sm flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider mb-4 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span> Nueva Auditoría
+            </button>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-lg" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Ayuda</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-lg" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Cerrar Sesión</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 mt-16 p-8 h-[calc(100vh-64px)] overflow-y-auto">
+<div class="max-w-[1600px] mx-auto">
+<!-- Header Section -->
+<div class="flex justify-between items-end mb-10">
+<div>
+<nav class="flex items-center gap-2 text-on-surface-variant text-xs mb-2">
+<span>Gestión de Datos</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="font-semibold text-primary">Carga Masiva</span>
+</nav>
+<h1 class="text-3xl font-headline font-extrabold text-primary tracking-tight">Carga Masiva de Comprobantes</h1>
+</div>
+<div class="flex gap-4">
+<button class="bg-secondary-container text-primary px-6 py-2.5 rounded-sm flex items-center gap-2 font-bold text-sm hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined">add</span> Nueva Fila
+                    </button>
+<button class="bg-primary text-on-primary px-8 py-2.5 rounded-sm flex items-center gap-2 font-bold text-sm shadow-[0px_8px_20px_rgba(0,30,64,0.15)] hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">upload_file</span> Importar Excel
+                    </button>
+</div>
+</div>
+<!-- Spreadsheet Canvas -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(0,30,64,0.06)] overflow-hidden border border-outline-variant/10">
+<!-- Toolbar -->
+<div class="px-6 py-4 border-b border-outline-variant/10 flex justify-between items-center bg-white">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 text-xs font-semibold text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+<span>Validación Automática Activa</span>
+</div>
+<div class="h-4 w-[1px] bg-outline-variant/30"></div>
+<div class="flex gap-3">
+<button class="text-slate-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">undo</span></button>
+<button class="text-slate-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">redo</span></button>
+<button class="text-slate-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">search</span></button>
+</div>
+</div>
+<div class="text-xs text-slate-400 italic">
+                        Mostrando 5 de 156 registros
+                    </div>
+</div>
+<!-- Table -->
+<div class="overflow-x-auto">
+<table class="w-full border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-left">
+<th class="p-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-outline-variant/10 w-48">CUIT</th>
+<th class="p-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-outline-variant/10 w-32">PERIODO</th>
+<th class="p-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-outline-variant/10 w-32">PROVINCIA</th>
+<th class="p-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-outline-variant/10 w-64">ACTIVIDADES</th>
+<th class="p-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-outline-variant/10 w-32">NAES</th>
+<th class="p-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-outline-variant/10 w-48">VOLUMEN</th>
+<th class="p-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-outline-variant/10 w-40">ALICUOTA ANT.</th>
+<th class="p-4 text-[11px] font-bold uppercase tracking-widest text-on-surface-variant min-w-[300px]">SITUACION ESPECIAL</th>
+</tr>
+</thead>
+<tbody>
+<!-- Row 1 -->
+<tr class="border-b border-outline-variant/10 group hover:bg-surface-container-low/50 transition-colors">
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<input class="data-table-input" type="text" value="30-71452638-9"/>
+<span class="material-symbols-outlined text-green-500 text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="2026"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input uppercase" type="text" value="bsas"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="Servicios de Auditoría Externa"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="692000"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<span class="text-slate-400 text-sm">$</span>
+<input class="data-table-input font-medium text-right" type="text" value="4.500.000,00"/>
+</div>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<input class="data-table-input text-right" type="text" value="3.5"/>
+<span class="text-slate-400 text-sm">%</span>
+</div>
+</td>
+<td class="p-4">
+<textarea class="w-full bg-transparent border-0 focus:ring-0 text-sm resize-none py-1 h-10" placeholder="Ingrese justificación técnica...">Exención parcial según Art. 189 del Código Fiscal por fomento industrial.</textarea>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="border-b border-outline-variant/10 group hover:bg-surface-container-low/50 transition-colors">
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<input class="data-table-input" type="text" value="20-33842109-1"/>
+<span class="material-symbols-outlined text-green-500 text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="2026"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input uppercase" type="text" value="caba"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="Venta al por menor de hardware"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="474101"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<span class="text-slate-400 text-sm">$</span>
+<input class="data-table-input font-medium text-right" type="text" value="12.280.450,25"/>
+</div>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<input class="data-table-input text-right" type="text" value="1.0"/>
+<span class="text-slate-400 text-sm">%</span>
+</div>
+</td>
+<td class="p-4">
+<textarea class="w-full bg-transparent border-0 focus:ring-0 text-sm resize-none py-1 h-10" placeholder="Ingrese justificación técnica...">Régimen simplificado aplicado para facturación menor a tope establecido.</textarea>
+</td>
+</tr>
+<!-- Row 3 (Error State Example) -->
+<tr class="border-b border-outline-variant/10 group bg-error-container/10 hover:bg-error-container/20 transition-colors">
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<input class="data-table-input border-error/30 text-error" type="text" value="33-66221144-X"/>
+<span class="material-symbols-outlined text-error text-[18px]">error</span>
+</div>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="2026"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input uppercase" type="text" value="cord"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="Transporte de carga pesada"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="492230"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<span class="text-slate-400 text-sm">$</span>
+<input class="data-table-input font-medium text-right" type="text" value="0,00"/>
+</div>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<input class="data-table-input text-right" type="text" value="0.0"/>
+<span class="text-slate-400 text-sm">%</span>
+</div>
+</td>
+<td class="p-4">
+<textarea class="w-full bg-transparent border-0 focus:ring-0 text-sm resize-none py-1 h-10 border-b border-error/20" placeholder="Error: Campo obligatorio">Formato de CUIT inválido. Requiere revisión manual de documentación adjunta.</textarea>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="border-b border-outline-variant/10 group hover:bg-surface-container-low/50 transition-colors">
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<input class="data-table-input" type="text" value="30-50000001-4"/>
+<span class="material-symbols-outlined text-green-500 text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="2026"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input uppercase" type="text" value="sf"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="Exportación de software"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="620100"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<span class="text-slate-400 text-sm">$</span>
+<input class="data-table-input font-medium text-right" type="text" value="8.900.000,00"/>
+</div>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<input class="data-table-input text-right" type="text" value="0.0"/>
+<span class="text-slate-400 text-sm">%</span>
+</div>
+</td>
+<td class="p-4">
+<textarea class="w-full bg-transparent border-0 focus:ring-0 text-sm resize-none py-1 h-10" placeholder="Ingrese justificación técnica...">Alicuota 0% por Ley de Economía del Conocimiento. Voucher #992-B.</textarea>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="group hover:bg-surface-container-low/50 transition-colors">
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<input class="data-table-input" type="text" value="27-18452963-2"/>
+<span class="material-symbols-outlined text-green-500 text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="2026"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input uppercase" type="text" value="mza"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="Servicios Jurídicos"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<input class="data-table-input" type="text" value="691001"/>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<span class="text-slate-400 text-sm">$</span>
+<input class="data-table-input font-medium text-right" type="text" value="3.120.000,00"/>
+</div>
+</td>
+<td class="p-4 border-r border-outline-variant/10">
+<div class="flex items-center gap-2">
+<input class="data-table-input text-right" type="text" value="4.0"/>
+<span class="text-slate-400 text-sm">%</span>
+</div>
+</td>
+<td class="p-4">
+<textarea class="w-full bg-transparent border-0 focus:ring-0 text-sm resize-none py-1 h-10" placeholder="Ingrese justificación técnica...">Sin observaciones adicionales para el periodo fiscal actual.</textarea>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Footer -->
+<div class="px-6 py-4 bg-surface-container-low/30 border-t border-outline-variant/10 flex justify-between items-center">
+<div class="flex gap-4">
+<button class="flex items-center gap-2 text-xs font-bold text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span> Exportar Borrador
+                        </button>
+<button class="flex items-center gap-2 text-xs font-bold text-error hover:opacity-80 transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete_sweep</span> Limpiar Todo
+                        </button>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-xs font-semibold">
+<span class="text-on-surface-variant">Total Volumen: <span class="text-primary ml-1">$ 28.800.450,25</span></span>
+<span class="h-3 w-[1px] bg-outline-variant/30"></span>
+<span class="text-on-surface-variant">Filas con Error: <span class="text-error ml-1">1</span></span>
+</div>
+<button class="bg-primary text-on-primary px-10 py-3 rounded-sm font-headline font-extrabold text-sm tracking-widest hover:shadow-lg transition-all">
+                            PROCESAR AUDITORÍA
+                        </button>
+</div>
+</div>
+</div>
+<!-- Contextual Help Card -->
+<div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white p-6 rounded-lg border border-outline-variant/10 shadow-sm">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined">lightbulb</span>
+</div>
+<h3 class="font-headline font-bold text-primary mb-2">Sugerencia de NAES</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed">El sistema autocompleta el código NAES basándose en la descripción de actividades ingresada para acelerar la carga.</p>
+</div>
+<div class="bg-white p-6 rounded-lg border border-outline-variant/10 shadow-sm">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<h3 class="font-headline font-bold text-primary mb-2">Validación AFIP</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed">Los CUITs son verificados contra el padrón en tiempo real para asegurar la consistencia del contribuyente.</p>
+</div>
+<div class="bg-white p-6 rounded-lg border border-outline-variant/10 shadow-sm">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined">security</span>
+</div>
+<h3 class="font-headline font-bold text-primary mb-2">Backup Automático</h3>
+<p class="text-xs text-on-surface-variant leading-relaxed">Toda información cargada se guarda automáticamente como borrador cada 30 segundos.</p>
+</div>
+</div>
+</div>
+</main>
+</body></html>

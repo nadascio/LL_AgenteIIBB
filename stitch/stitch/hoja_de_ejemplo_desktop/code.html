@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hoja de Ejemplo | Lisicki Litvin</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#dad9de",
+                    "primary-container": "#003366",
+                    "primary": "#001e40",
+                    "tertiary-fixed-dim": "#ffb690",
+                    "outline-variant": "#c3c6d1",
+                    "secondary-container": "#e2e2e6",
+                    "on-surface": "#1a1c1f",
+                    "on-error-container": "#93000a",
+                    "on-secondary": "#ffffff",
+                    "inverse-primary": "#a7c8ff",
+                    "surface": "#f9f9fe",
+                    "on-secondary-container": "#636468",
+                    "on-secondary-fixed-variant": "#45474a",
+                    "on-tertiary-fixed": "#341100",
+                    "surface-container-highest": "#e2e2e7",
+                    "on-tertiary-fixed-variant": "#723610",
+                    "secondary": "#5d5e62",
+                    "inverse-surface": "#2f3034",
+                    "secondary-fixed-dim": "#c5c6ca",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container": "#eeedf2",
+                    "secondary-fixed": "#e2e2e6",
+                    "surface-variant": "#e2e2e7",
+                    "on-error": "#ffffff",
+                    "outline": "#737780",
+                    "on-primary-container": "#799dd6",
+                    "on-tertiary-container": "#d8885c",
+                    "surface-container-high": "#e8e8ed",
+                    "tertiary": "#381300",
+                    "on-primary-fixed": "#001b3c",
+                    "error": "#ba1a1a",
+                    "primary-fixed": "#d5e3ff",
+                    "error-container": "#ffdad6",
+                    "background": "#f9f9fe",
+                    "tertiary-fixed": "#ffdbca",
+                    "primary-fixed-dim": "#a7c8ff",
+                    "on-surface-variant": "#43474f",
+                    "on-primary-fixed-variant": "#1f477b",
+                    "on-primary": "#ffffff",
+                    "surface-tint": "#3a5f94",
+                    "surface-bright": "#f9f9fe",
+                    "on-background": "#1a1c1f",
+                    "surface-container-low": "#f4f3f8",
+                    "inverse-on-surface": "#f1f0f5",
+                    "on-secondary-fixed": "#191c1e",
+                    "tertiary-container": "#592300"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .data-sheet-shadow {
+            shadow-[0px_12px_32px_rgba(0,30,64,0.06)];
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-container/30">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full flex justify-between items-center px-8 h-16 border-b border-slate-200/20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-50 shadow-[0px_12px_32px_rgba(0,30,64,0.06)]">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tight text-[#001e40] dark:text-white font-headline">Lisicki Litvin | Tax Audit AI</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#003366] dark:hover:text-blue-300 transition-colors" href="#">Guía de Uso</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium hover:text-[#003366] dark:hover:text-blue-300 transition-colors" href="#">Carga de Datos</a>
+<a class="text-[#001e40] dark:text-white border-b-2 border-[#001e40] dark:border-blue-500 pb-1 font-bold" href="#">Hoja de Ejemplo</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex gap-2">
+<button class="p-2 text-slate-500 hover:text-primary transition-colors"><span class="material-symbols-outlined">notifications</span></button>
+<button class="p-2 text-slate-500 hover:text-primary transition-colors"><span class="material-symbols-outlined">settings</span></button>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="User profile" data-alt="professional portrait of a senior tax consultant in a modern office with natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0I_1z1AUK_NRYYYFiO5SHnsKIKUH5y76uIIH_f1PY70_ZRLRZ4c9jDPEggq5ebzrmHe_IPvj6a1pWC3bEZ6nD2JtEAQpyusEQqwgDvfi7KuxTSao_6aX3TBOfhdWr349YU7CMwGisWr9qzKXMcb67IsYCI3QPTka1w-Dng5egcgIx92UOWyHCRVX4SmGGPNLIj_qSYn6H4aoU48T89RcTVsIeEqtiwlPw-73QtO2UvdzjbP0mzH1Ydwak6mFFrPPk7XofQwaCdkHX"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] flex flex-col p-4 gap-2 bg-slate-50 dark:bg-slate-950 w-64 border-r border-slate-200/30 z-40">
+<div class="flex items-center gap-3 px-3 py-4 mb-4">
+<div class="w-10 h-10 bg-primary flex items-center justify-center rounded-lg">
+<span class="text-on-primary font-headline font-extrabold text-lg">LL</span>
+</div>
+<div>
+<p class="text-xs uppercase tracking-widest font-semibold text-slate-500">Fiscal Control</p>
+<p class="text-[10px] text-slate-400">Professional Suite</p>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/50 rounded-lg transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 bg-white dark:bg-slate-900 text-[#001e40] dark:text-white font-bold shadow-sm rounded-lg" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Auditoría</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/50 rounded-lg transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Reportes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/50 rounded-lg transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Historial</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900/50 rounded-lg transition-transform duration-200 hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">folder_open</span>
+<span class="text-xs uppercase tracking-widest font-semibold">Archivos</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-slate-200/30 flex flex-col gap-1">
+<button class="w-full bg-primary text-on-primary py-2.5 rounded-sm font-semibold text-sm mb-4 active:scale-95 duration-150 transition-all">Nueva Auditoría</button>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 rounded-lg text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined">help</span>
+                Ayuda
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 rounded-lg text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Cerrar Sesión
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 px-12 pb-12 min-h-screen">
+<div class="max-w-6xl mx-auto">
+<!-- Page Header -->
+<div class="mb-10 flex justify-between items-end">
+<div>
+<nav class="flex gap-2 text-on-surface-variant text-xs mb-2">
+<span>Auditoría</span>
+<span>/</span>
+<span class="text-primary font-semibold">Simulación de Ejemplo</span>
+</nav>
+<h1 class="font-headline text-3xl font-bold tracking-tight text-primary">Hoja de Ejemplo: Escenario de Prueba Auditado</h1>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-2.5 bg-secondary-container text-on-secondary-container rounded-sm font-semibold text-sm hover:opacity-90 transition-all">Simular Impacto</button>
+<button class="px-6 py-2.5 bg-primary text-on-primary rounded-sm font-semibold text-sm hover:opacity-90 transition-all">Aprobar Análisis</button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-6 items-start">
+<!-- Client Summary Card (The "Data Sheet") -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl p-8 shadow-[0px_12px_32px_rgba(0,30,64,0.06)] border border-outline-variant/10">
+<div class="flex items-center justify-between mb-8">
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Perfil de Cliente</span>
+<span class="px-2 py-1 bg-primary-container/10 text-primary text-[10px] font-bold rounded uppercase">Referencia</span>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block text-[10px] uppercase tracking-tighter text-on-surface-variant font-bold mb-1">CUIT Contribuyente</label>
+<p class="text-lg font-headline font-bold text-primary">30-12345678-9</p>
+</div>
+<div>
+<label class="block text-[10px] uppercase tracking-tighter text-on-surface-variant font-bold mb-1">Período Fiscal</label>
+<p class="text-lg font-headline font-bold text-primary">2026</p>
+</div>
+<div class="pt-4 border-t border-outline-variant/20">
+<label class="block text-[10px] uppercase tracking-tighter text-on-surface-variant font-bold mb-1">Riesgo Detectado</label>
+<div class="flex items-center gap-2 mt-1">
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-error w-[12%]"></div>
+</div>
+<span class="text-xs font-bold text-error">Bajo</span>
+</div>
+</div>
+</div>
+<div class="mt-12 p-4 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<p class="text-xs text-on-surface-variant leading-relaxed">
+<span class="font-bold text-primary block mb-1 uppercase tracking-widest text-[9px]">Nota del Auditor AI</span>
+                            Este escenario simula un cruce de datos entre regímenes simplificados y facturación electrónica para detectar inconsistencias en la categorización NAES.
+                        </p>
+</div>
+</div>
+<!-- Main Audit Table -->
+<div class="col-span-12 lg:col-span-8 space-y-6">
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0px_12px_32px_rgba(0,30,64,0.06)] border border-outline-variant/10">
+<div class="px-8 py-6 border-b border-outline-variant/10 flex justify-between items-center">
+<h2 class="font-headline font-bold text-primary text-xl">Detalle de Actividades Declaradas</h2>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer">filter_list</span>
+</div>
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low">
+<th class="px-8 py-4 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Actividad Económica</th>
+<th class="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Código NAES</th>
+<th class="px-6 py-4 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Volumen (AR$)</th>
+<th class="px-8 py-4 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Situación Especial</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-8 py-6">
+<p class="text-sm font-semibold text-primary">Venta de calzado</p>
+<p class="text-[11px] text-on-surface-variant">Minorista - Local Físico</p>
+</td>
+<td class="px-6 py-6">
+<code class="text-xs bg-surface-container px-2 py-1 rounded font-mono">477210</code>
+</td>
+<td class="px-6 py-6">
+<p class="text-sm font-bold text-primary">12.450.000,00</p>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-start gap-2 max-w-[200px]">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5">info</span>
+<p class="text-[11px] text-on-surface-variant italic">Excedente de facturación detectado en T3 por ventas estacionales.</p>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-8 py-6">
+<p class="text-sm font-semibold text-primary">Fabricación de textiles</p>
+<p class="text-[11px] text-on-surface-variant">Insumos industriales</p>
+</td>
+<td class="px-6 py-6">
+<code class="text-xs bg-surface-container px-2 py-1 rounded font-mono">131100</code>
+</td>
+<td class="px-6 py-6">
+<p class="text-sm font-bold text-primary">8.920.500,00</p>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-start gap-2 max-w-[200px]">
+<span class="material-symbols-outlined text-tertiary text-sm mt-0.5">warning</span>
+<p class="text-[11px] text-on-surface-variant italic">Cruce con remitos electrónicos indica stock remanente sin declarar.</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Insight Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="p-6 bg-primary rounded-xl text-on-primary">
+<h3 class="font-headline font-bold mb-2">Conclusión Automática</h3>
+<p class="text-sm opacity-90 leading-relaxed mb-4">El contribuyente mantiene una correlación del 94% entre ingresos y gastos operativos. Se recomienda proceder con el cierre de auditoría preventiva.</p>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold">VALIDEZ ALTA</span>
+<span class="px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold">COMPLIANCE OK</span>
+</div>
+</div>
+<div class="p-6 bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-[0px_12px_32px_rgba(0,30,64,0.06)]">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">history_edu</span>
+<h3 class="font-headline font-bold text-primary">Historial de Ajustes</h3>
+</div>
+<ul class="space-y-4">
+<li class="flex items-center justify-between">
+<span class="text-xs text-on-surface-variant">Recategorización V.1</span>
+<span class="text-xs font-bold text-primary">+$1.2M</span>
+</li>
+<li class="flex items-center justify-between">
+<span class="text-xs text-on-surface-variant">Deducción Art. 42</span>
+<span class="text-xs font-bold text-primary">-$0.4M</span>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB for quick action (Only for top-level reference context) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined">add</span>
+</button>
+</body></html>

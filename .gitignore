@@ -1,0 +1,35 @@
+# Entornos Virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Configuración y Secretos
+.env
+.ipynb_checkpoints/
+
+# Bases de datos y memoria local
+data/*.db
+memory/*.json
+normativas/.chromadb/
+chroma/
+
+# Reportes generados (Evitar subir datos de clientes)
+resultados/
+output/*.docx
+output/*.xlsx
+output/*.pdf
+
+# Archivos pesados o innecesarios
+stitch.zip
+scratch/
+.temp/
+
+# IDEs
+.vscode/
+.idea/

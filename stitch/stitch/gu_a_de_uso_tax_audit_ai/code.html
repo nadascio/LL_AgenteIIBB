@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lisicki Litvin - Tax Audit AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ba1a1a",
+                    "outline-variant": "#c3c6d1",
+                    "secondary-fixed-dim": "#c5c6ca",
+                    "surface": "#f9f9fe",
+                    "on-secondary-fixed-variant": "#45474a",
+                    "primary-container": "#003366",
+                    "on-tertiary-fixed-variant": "#723610",
+                    "outline": "#737780",
+                    "surface-dim": "#dad9de",
+                    "on-tertiary-container": "#d8885c",
+                    "inverse-primary": "#a7c8ff",
+                    "surface-bright": "#f9f9fe",
+                    "surface-variant": "#e2e2e7",
+                    "primary-fixed-dim": "#a7c8ff",
+                    "tertiary-fixed-dim": "#ffb690",
+                    "on-surface-variant": "#43474f",
+                    "secondary": "#5d5e62",
+                    "on-secondary-fixed": "#191c1e",
+                    "inverse-on-surface": "#f1f0f5",
+                    "surface-container-low": "#f4f3f8",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-fixed": "#341100",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#e2e2e6",
+                    "surface-container-highest": "#e2e2e7",
+                    "inverse-surface": "#2f3034",
+                    "on-secondary": "#ffffff",
+                    "on-secondary-container": "#636468",
+                    "on-error-container": "#93000a",
+                    "on-background": "#1a1c1f",
+                    "on-primary-container": "#799dd6",
+                    "on-error": "#ffffff",
+                    "tertiary-container": "#592300",
+                    "on-tertiary": "#ffffff",
+                    "primary": "#001e40",
+                    "surface-container-high": "#e8e8ed",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#3a5f94",
+                    "on-surface": "#1a1c1f",
+                    "secondary-fixed": "#e2e2e6",
+                    "surface-container": "#eeedf2",
+                    "background": "#f9f9fe",
+                    "on-primary-fixed": "#001b3c",
+                    "primary-fixed": "#d5e3ff",
+                    "tertiary": "#381300",
+                    "on-primary-fixed-variant": "#1f477b",
+                    "tertiary-fixed": "#ffdbca"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        }
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .tonal-transition { transition: background 0.3s ease; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex items-center justify-between px-6 h-16 w-full bg-[#f9f9fe]/80 backdrop-blur-xl shadow-[0px_12px_32px_rgba(0,30,64,0.06)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#001e40]" data-icon="account_balance">account_balance</span>
+<span class="text-xl font-bold tracking-tighter text-[#001e40] font-['Manrope']">Lisicki Litvin</span>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-8">
+<a class="text-sm font-bold tracking-tight text-[#001e40] border-b-2 border-[#001e40] font-['Manrope']" href="#">Guía de Uso</a>
+<a class="text-sm font-medium tracking-tight text-slate-500 font-['Manrope'] hover:text-[#001e40] transition-colors" href="#">Carga de Datos</a>
+<a class="text-sm font-medium tracking-tight text-slate-500 font-['Manrope'] hover:text-[#001e40] transition-colors" href="#">Ejemplo</a>
+</nav>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary text-xs font-bold overflow-hidden">
+<img alt="Avatar" data-alt="Close-up portrait of a professional male executive in a dark blue suit, clean and high-end studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLA0GPxcKX4q-TakrKK9iPj1aDNOknEfkgaz5KB9ixqVN6D-VwC93M1sIHA7NLutdbXweEpdsqjFH1O5g-96ISUfAyU1D5swi7rNbz6lAf-mQI5jm6JrT3rBxycB-f3y7CMP0MVjbt2_T2jaFulsUkPciU6O0Cm3GkeRSZTPwVIy16gnxMl9MrmYYY94FwchnhEIeUnoiBksHK5ouw6ASdnPBEi6tfYclZBLaUdpxN2GR8wj4_Vkf3CF3VCG2c3qQgD7uyOoK-tgIm"/>
+</div>
+</div>
+</header>
+<!-- NavigationDrawer (Sidebar) -->
+<aside class="fixed left-0 top-16 hidden md:flex flex-col gap-2 py-4 h-screen w-64 bg-[#f4f3f8] border-r-0 z-40">
+<div class="px-6 py-4">
+<span class="text-lg font-bold text-[#001e40] font-['Inter']">Tax Audit AI</span>
+</div>
+<nav class="flex flex-col gap-1 pr-4">
+<!-- Active Tab: Guía de Uso -->
+<a class="flex items-center gap-3 px-6 py-3 bg-white text-[#001e40] font-bold rounded-l-none rounded-r-full shadow-sm hover:translate-x-1 transition-transform duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="menu_book">menu_book</span>
+<span class="font-['Inter'] text-sm">Guía de Uso</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-[#43474f] hover:bg-[#e8e8ed] rounded-l-none rounded-r-full hover:translate-x-1 transition-transform duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="upload_file">upload_file</span>
+<span class="font-['Inter'] text-sm">Carga de Datos</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-[#43474f] hover:bg-[#e8e8ed] rounded-l-none rounded-r-full hover:translate-x-1 transition-transform duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="assignment">assignment</span>
+<span class="font-['Inter'] text-sm">Ejemplo</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-12 px-6 md:ml-64 min-h-screen transition-all duration-300">
+<div class="max-w-5xl mx-auto space-y-12">
+<!-- Hero / Welcome Section (Data Sheet Aesthetic) -->
+<section class="bg-surface-container-lowest p-10 md:p-16 rounded-xl shadow-[0px_12px_32px_rgba(0,30,64,0.06)] border border-outline-variant/10">
+<div class="grid md:grid-cols-2 gap-12 items-center">
+<div class="space-y-6">
+<div class="inline-flex items-center px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-[10px] font-bold tracking-widest uppercase">
+                            Senior Audit Framework
+                        </div>
+<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-primary leading-tight">
+                            Senior Tax Audit Agent
+                        </h1>
+<p class="text-on-surface-variant text-lg leading-relaxed font-body">
+                            Welcome to the next generation of fiscal intelligence. This engine transforms structured data into <span class="text-primary font-semibold underline decoration-primary-container/30">official legal reports</span> strictly aligned with Law 2026 mandates.
+                        </p>
+<div class="pt-4">
+<button class="bg-primary text-on-primary px-8 py-3 rounded-sm font-bold text-sm tracking-wide hover:opacity-90 transition-opacity">
+                                COMENZAR AUDITORÍA
+                            </button>
+</div>
+</div>
+<div class="relative h-64 md:h-80 rounded-lg overflow-hidden bg-primary">
+<img class="absolute inset-0 w-full h-auto opacity-40 mix-blend-luminosity object-cover" data-alt="Modern high-rise law firm office interior with architectural shadows and clean glass surfaces, professional corporate atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDxh8eIgQUTg8huyOnhV1-ClR--SaWd3bwPMvWl3X1-3JJ7ga_jTuu41pjnTuXZdNAaGeArrv1khapMrgbE4y0ZJ8rlfqqoiPxppFZSwCbiFtRrcoaANkESjmvF9Z6WxNsRR72pwWXAKiDhlG1t4jQqedd3YiCf9J7hZcj5-oIiQPOeoxq_rEPtwf7FzmYYmYfuQBKXZk1QeFWzOBHUrk76Fz2UjaPojyjzXg3SSA1NKHAR66AmU0GMwNEftp7UKbcDX2XmBXMwFKW"/>
+<div class="absolute inset-0 bg-gradient-to-tr from-primary to-primary-container/40"></div>
+<div class="absolute bottom-6 left-6 right-6 p-6 bg-white/10 backdrop-blur-md rounded border border-white/20">
+<p class="text-white text-xs font-medium uppercase tracking-[0.2em] mb-1">Status</p>
+<p class="text-white text-sm font-bold">Engine ready for Law 2026 validation</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Instructions Section: Bento Grid Layout -->
+<section class="space-y-8">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="space-y-2">
+<h2 class="text-2xl font-bold text-primary tracking-tight">Protocolo de Operación</h2>
+<p class="text-on-surface-variant text-sm">Siga los pasos rigurosamente para garantizar la integridad del reporte final.</p>
+</div>
+<div class="h-[1px] flex-grow bg-outline-variant/30 hidden md:block mb-3 mx-8"></div>
+<div class="text-xs font-bold text-primary-container tracking-tighter">LL / FISCAL COMPLIANCE</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Step 1 -->
+<div class="group bg-surface-container-low p-8 rounded-lg hover:bg-white transition-all duration-300 border border-transparent hover:border-outline-variant/20 hover:shadow-lg">
+<div class="w-12 h-12 bg-primary rounded-sm flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-2xl" data-icon="table_chart">table_chart</span>
+</div>
+<div class="space-y-4">
+<div class="text-xs font-bold text-primary/50 tracking-widest">PASO 01</div>
+<h3 class="text-xl font-bold text-primary leading-snug">Estructura de Datos</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                                Complete las <span class="text-primary font-bold">8 columnas obligatorias</span> en la hoja 'Carga de Datos'. Respete los encabezados para asegurar la lectura por IA.
+                            </p>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="group bg-surface-container-low p-8 rounded-lg hover:bg-white transition-all duration-300 border border-transparent hover:border-outline-variant/20 hover:shadow-lg">
+<div class="w-12 h-12 bg-primary rounded-sm flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-2xl" data-icon="account_tree">account_tree</span>
+</div>
+<div class="space-y-4">
+<div class="text-xs font-bold text-primary/50 tracking-widest">PASO 02</div>
+<h3 class="text-xl font-bold text-primary leading-snug">Referencia de Casos</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                                Para clientes con <span class="text-primary font-bold">multi-actividad</span>, consulte la hoja 'Ejemplo'. La IA requiere esta jerarquía para la segregación fiscal.
+                            </p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="group bg-primary p-8 rounded-lg shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="w-12 h-12 bg-white rounded-sm flex items-center justify-center mb-6 text-primary">
+<span class="material-symbols-outlined text-2xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="space-y-4">
+<div class="text-xs font-bold text-white/50 tracking-widest">FINALIZACIÓN</div>
+<h3 class="text-xl font-bold text-white leading-snug">Generación de Reporte</h3>
+<p class="text-sm text-white/80 leading-relaxed">
+                                Cargue el archivo Excel. El agente realizará la <span class="text-white font-bold">unificación automática</span> y redactará el dictamen final.
+                            </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Technical Spec Footer / Data Sheet Detail -->
+<section class="bg-surface-container-high/40 p-8 rounded-xl border-l-4 border-primary flex flex-col md:flex-row items-center gap-8">
+<div class="bg-white p-4 rounded shadow-sm">
+<span class="material-symbols-outlined text-4xl text-primary" data-icon="verified_user" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+<div class="flex-grow">
+<h4 class="text-sm font-bold text-primary mb-1">Certificación Normativa</h4>
+<p class="text-xs text-on-surface-variant max-w-2xl leading-relaxed">
+                        Este sistema ha sido auditado para cumplir con los estándares de reporte de Lisicki Litvin. Todo informe generado incluye la trazabilidad de datos requerida por el marco regulatorio vigente para el periodo fiscal 2026.
+                    </p>
+</div>
+<div class="flex gap-4">
+<button class="px-5 py-2 text-xs font-bold border border-primary text-primary hover:bg-primary hover:text-white transition-colors">
+                        DESCARGAR PLANTILLA
+                    </button>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md flex justify-around items-center px-6 z-50">
+<button class="flex flex-col items-center gap-1 text-[#001e40]">
+<span class="material-symbols-outlined" data-icon="menu_book" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+<span class="text-[10px] font-bold">Guía</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined" data-icon="upload_file">upload_file</span>
+<span class="text-[10px] font-medium">Carga</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span class="text-[10px] font-medium">Ejemplo</span>
+</button>
+</nav>
+</body></html>

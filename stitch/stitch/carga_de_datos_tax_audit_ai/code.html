@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ba1a1a",
+                        "outline-variant": "#c3c6d1",
+                        "secondary-fixed-dim": "#c5c6ca",
+                        "surface": "#f9f9fe",
+                        "on-secondary-fixed-variant": "#45474a",
+                        "primary-container": "#003366",
+                        "on-tertiary-fixed-variant": "#723610",
+                        "outline": "#737780",
+                        "surface-dim": "#dad9de",
+                        "on-tertiary-container": "#d8885c",
+                        "inverse-primary": "#a7c8ff",
+                        "surface-bright": "#f9f9fe",
+                        "surface-variant": "#e2e2e7",
+                        "primary-fixed-dim": "#a7c8ff",
+                        "tertiary-fixed-dim": "#ffb690",
+                        "on-surface-variant": "#43474f",
+                        "secondary": "#5d5e62",
+                        "on-secondary-fixed": "#191c1e",
+                        "inverse-on-surface": "#f1f0f5",
+                        "surface-container-low": "#f4f3f8",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#341100",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#e2e2e6",
+                        "surface-container-highest": "#e2e2e7",
+                        "inverse-surface": "#2f3034",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#636468",
+                        "on-error-container": "#93000a",
+                        "on-background": "#1a1c1f",
+                        "on-primary-container": "#799dd6",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#592300",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#001e40",
+                        "surface-container-high": "#e8e8ed",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#3a5f94",
+                        "on-surface": "#1a1c1f",
+                        "secondary-fixed": "#e2e2e6",
+                        "surface-container": "#eeedf2",
+                        "background": "#f9f9fe",
+                        "on-primary-fixed": "#001b3c",
+                        "primary-fixed": "#d5e3ff",
+                        "tertiary": "#381300",
+                        "on-primary-fixed-variant": "#1f477b",
+                        "tertiary-fixed": "#ffdbca"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .excel-input {
+            border: none !important;
+            padding: 8px 12px !important;
+            width: 100%;
+            height: 100%;
+            background: transparent !important;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        .excel-input:focus {
+            background-color: #f1f5f9 !important;
+            box-shadow: inset 0 0 0 2px #001e40 !important;
+        }
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #f4f3f8;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #c3c6d1;
+            border-radius: 4px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased overflow-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#f9f9fe]/80 backdrop-blur-xl flex items-center justify-between px-6 h-16 w-full shadow-[0px_12px_32px_rgba(0,30,64,0.06)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl">account_balance</span>
+<span class="text-xl font-bold tracking-tighter text-[#001e40] font-headline">Lisicki Litvin</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<nav class="flex items-center gap-6">
+<a class="text-slate-500 font-medium transition-colors hover:text-primary" href="#">Guía de Uso</a>
+<a class="text-[#001e40] font-bold border-b-2 border-[#001e40] h-16 flex items-center" href="#">Carga de Datos</a>
+<a class="text-slate-500 font-medium transition-colors hover:text-primary" href="#">Ejemplo</a>
+</nav>
+<div class="flex items-center gap-4 ml-4">
+<button class="material-symbols-outlined p-2 rounded-full hover:bg-slate-100 transition-colors text-on-surface-variant">search</button>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary text-xs font-bold" title="Lisicki Litvin Logo">
+                    LL
+                </div>
+</div>
+</div>
+</header>
+<!-- Sidebar Navigation Drawer -->
+<aside class="fixed left-0 top-16 flex flex-col gap-2 py-4 h-screen w-64 bg-[#f4f3f8] z-40 hidden md:flex border-r-0">
+<div class="px-6 py-4">
+<h2 class="text-lg font-bold text-[#001e40] font-headline">Tax Audit AI</h2>
+</div>
+<nav class="flex flex-col">
+<a class="flex items-center gap-3 px-6 py-3 text-[#43474f] font-medium transition-transform duration-200 hover:translate-x-1 hover:bg-[#e8e8ed]" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span>Guía de Uso</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 bg-white text-[#001e40] font-bold rounded-l-none rounded-r-full shadow-sm" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">upload_file</span>
+<span>Carga de Datos</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-[#43474f] font-medium transition-transform duration-200 hover:translate-x-1 hover:bg-[#e8e8ed]" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span>Ejemplo</span>
+</a>
+</nav>
+<div class="mt-auto p-6">
+<div class="p-4 rounded-xl bg-primary-container text-white text-sm">
+<p class="font-bold mb-1">Status Auditoría</p>
+<p class="opacity-80">En proceso de carga</p>
+<div class="w-full bg-white/20 h-1.5 mt-3 rounded-full overflow-hidden">
+<div class="bg-white h-full w-1/3"></div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:pl-64 pt-16 h-screen flex flex-col">
+<!-- Content Header -->
+<div class="px-8 py-6 bg-surface flex justify-between items-end">
+<div>
+<h1 class="text-2xl font-extrabold tracking-tight font-headline text-primary mb-1">Carga Masiva de Comprobantes</h1>
+<p class="text-on-surface-variant text-sm">Sistema de Auditoría Inteligente v2.0</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-secondary-container text-primary font-bold text-sm rounded-sm hover:bg-surface-container-high transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">cloud_upload</span>
+                    Importar Excel
+                </button>
+<button class="px-6 py-2 bg-primary text-on-primary font-bold text-sm rounded-sm hover:opacity-90 transition-opacity flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">save</span>
+                    Guardar Cambios
+                </button>
+</div>
+</div>
+<!-- Excel Interface Table -->
+<div class="flex-1 overflow-hidden px-8 pb-8">
+<div class="bg-surface-container-lowest rounded-xl shadow-[0px_12px_32px_rgba(0,30,64,0.06)] h-full flex flex-col border border-outline-variant/20">
+<!-- Table Controls -->
+<div class="flex items-center gap-4 px-4 py-3 bg-surface-container-low/50 border-b border-outline-variant/30">
+<div class="flex items-center gap-1 bg-white border border-outline-variant/40 rounded px-2 py-1">
+<span class="material-symbols-outlined text-sm text-outline">search</span>
+<input class="border-none text-xs outline-none focus:ring-0 w-40 p-0" placeholder="Filtrar por CUIT..." type="text"/>
+</div>
+<div class="h-4 w-[1px] bg-outline-variant/40 mx-2"></div>
+<button class="text-xs font-bold text-primary flex items-center gap-1 hover:bg-white px-2 py-1 rounded transition-colors">
+<span class="material-symbols-outlined text-sm">add_circle</span>
+                        Nueva Fila
+                    </button>
+<button class="text-xs font-bold text-error flex items-center gap-1 hover:bg-white px-2 py-1 rounded transition-colors ml-auto">
+<span class="material-symbols-outlined text-sm">delete_sweep</span>
+                        Limpiar Todo
+                    </button>
+</div>
+<!-- Scrollable Table Body -->
+<div class="flex-1 overflow-auto table-container">
+<table class="w-full border-collapse min-w-[1200px]">
+<thead class="sticky top-0 z-10">
+<tr class="bg-surface-container-low text-left">
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-b border-outline-variant/30 w-12 text-center">#</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-b border-outline-variant/30 w-48">cuit</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-b border-outline-variant/30 w-24">periodo</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-b border-outline-variant/30 w-32">provincia</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-b border-outline-variant/30 w-64">actividades</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-b border-outline-variant/30 w-40">naes</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-b border-outline-variant/30 w-32">volumen</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-r border-b border-outline-variant/30 w-32">alicuota_anterior</th>
+<th class="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant border-b border-outline-variant/30 min-w-[300px]">situacion_especial</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-4 py-0 border-r border-outline-variant/20 text-center text-xs text-outline font-medium">1</td>
+<td class="p-0 border-r border-outline-variant/20">
+<input class="excel-input" placeholder="00-00000000-0" type="text" value="30-71452890-9"/>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<input class="excel-input text-center" type="text" value="2026"/>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<select class="excel-input">
+<option selected="" value="bsas">bsas</option>
+<option value="caba">caba</option>
+<option value="cordoba">córdoba</option>
+<option value="santafe">santa fe</option>
+</select>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<input class="excel-input" type="text" value="Venta al por mayor de insumos industriales"/>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<div class="relative group h-full">
+<input class="excel-input" placeholder="000000; 000000" type="text" value="466932; 466939"/>
+<span class="absolute right-2 top-1/2 -translate-y-1/2 material-symbols-outlined text-sm text-outline opacity-0 group-hover:opacity-100">info</span>
+</div>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<div class="relative h-full flex items-center">
+<span class="absolute left-3 text-xs text-outline">$</span>
+<input class="excel-input pl-6 text-right" type="number" value="15400200.50"/>
+</div>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<div class="relative h-full flex items-center">
+<input class="excel-input text-right pr-6" step="0.1" type="number" value="3.5"/>
+<span class="absolute right-3 text-xs text-outline">%</span>
+</div>
+</td>
+<td class="p-0">
+<textarea class="excel-input resize-none min-h-[40px] align-middle" placeholder="Espacio de Razonamiento...">Contribuyente encuadrado en MiPyME tramo 1. Revisar exclusión por facturación exportación.</textarea>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-4 py-0 border-r border-outline-variant/20 text-center text-xs text-outline font-medium">2</td>
+<td class="p-0 border-r border-outline-variant/20">
+<input class="excel-input" type="text" value="27-33901244-4"/>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<input class="excel-input text-center" type="text" value="2026"/>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<select class="excel-input">
+<option value="bsas">bsas</option>
+<option selected="" value="caba">caba</option>
+<option value="cordoba">córdoba</option>
+</select>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<input class="excel-input" type="text" value="Servicios de consultoría informática"/>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<input class="excel-input" type="text" value="620100"/>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<div class="relative h-full flex items-center">
+<span class="absolute left-3 text-xs text-outline">$</span>
+<input class="excel-input pl-6 text-right" type="number" value="8900000.00"/>
+</div>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<div class="relative h-full flex items-center">
+<input class="excel-input text-right pr-6 border-b-2 border-error/40" step="0.1" type="number" value="1.5"/>
+<span class="absolute right-3 text-xs text-outline">%</span>
+</div>
+</td>
+<td class="p-0">
+<textarea class="excel-input resize-none min-h-[40px] align-middle" placeholder="Espacio de Razonamiento...">Nueva alícuota por ley de software aplicable desde Q3.</textarea>
+</td>
+</tr>
+<!-- Row 3 - Validation Error Example -->
+<tr class="hover:bg-surface-container-high transition-colors bg-error-container/5">
+<td class="px-4 py-0 border-r border-outline-variant/20 text-center text-xs text-outline font-medium">3</td>
+<td class="p-0 border-r border-outline-variant/20">
+<input class="excel-input bg-error-container/20" type="text" value="00-00000000-0"/>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<input class="excel-input text-center" type="text" value="2026"/>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<select class="excel-input">
+<option selected="" value="bsas">bsas</option>
+</select>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<input class="excel-input" type="text" value="---"/>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<div class="flex items-center gap-1 pr-2">
+<input class="excel-input" type="text" value="101011"/>
+<span class="material-symbols-outlined text-error text-base" title="Formato inválido: requiere punto y coma">warning</span>
+</div>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<div class="relative h-full flex items-center">
+<span class="absolute left-3 text-xs text-outline">$</span>
+<input class="excel-input pl-6 text-right" type="number" value="0.00"/>
+</div>
+</td>
+<td class="p-0 border-r border-outline-variant/20">
+<div class="relative h-full flex items-center">
+<input class="excel-input text-right pr-6" step="0.1" type="number" value="0.0"/>
+<span class="absolute right-3 text-xs text-outline">%</span>
+</div>
+</td>
+<td class="p-0">
+<textarea class="excel-input resize-none min-h-[40px] align-middle italic text-outline" placeholder="Espacio de Razonamiento..."></textarea>
+</td>
+</tr>
+<!-- Empty Rows for Excel Effect -->
+<tr class="h-10"><td class="border-r border-outline-variant/10 text-center text-[10px] text-outline/30">4</td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td></td></tr>
+<tr class="h-10"><td class="border-r border-outline-variant/10 text-center text-[10px] text-outline/30">5</td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td></td></tr>
+<tr class="h-10"><td class="border-r border-outline-variant/10 text-center text-[10px] text-outline/30">6</td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td class="border-r border-outline-variant/10"></td><td></td></tr>
+</tbody>
+</table>
+</div>
+<!-- Footer Summary Area -->
+<div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant/30 flex items-center justify-between text-xs font-semibold text-primary">
+<div class="flex gap-6">
+<span>Total Filas: 3</span>
+<span>Errores de validación: 2</span>
+<span class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span> 
+                            Motor de reglas activo
+                        </span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-on-surface-variant font-normal">Zoom: 100%</span>
+<div class="flex items-center gap-2">
+<button class="w-6 h-6 flex items-center justify-center hover:bg-white rounded">-</button>
+<div class="w-24 bg-outline-variant/30 h-1 rounded-full relative">
+<div class="absolute inset-y-0 left-0 w-1/2 bg-primary rounded-full"></div>
+</div>
+<button class="w-6 h-6 flex items-center justify-center hover:bg-white rounded">+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Navigation (Hidden on desktop) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-outline-variant/20 flex justify-around py-2 z-50">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-[10px]">Guía</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">upload_file</span>
+<span class="text-[10px] font-bold">Carga</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">assignment</span>
+<span class="text-[10px]">Ejemplo</span>
+</button>
+</nav>
+</body></html>
