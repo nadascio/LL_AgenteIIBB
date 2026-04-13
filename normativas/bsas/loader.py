@@ -93,6 +93,29 @@ class NormativaLoader:
             }
         }
 
+    def _load_fixtures(self) -> None:
+        """Carga datos desde el archivo JSON de fixtures (fallback)."""
+        fixtures_path = FIXTURES_DIR / "alicuotas_base.json"
+        print(f"[LOADER] Cargando fixtures desde {fixtures_path.name}")
+        with open(fixtures_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        # Los fixtures no tienen tramos_reduccion por actividad — agregar vacío
+        for act in data.get("actividades", []):
+            if "tramos_reduccion" not in act:
+                act["tramos_reduccion"] = {}
+        # Mapear escalas_volumen al formato de tramos para compatibilidad
+        escalas = data.get("escalas_volumen", {}).get("categorias", [])
+        tramos = []
+        for i, cat in enumerate(escalas, start=1):
+            tramos.append({
+                "numero": i,
+                "limite_anual": cat.get("volumen_hasta", float("inf")),
+                "categoria": cat.get("categoria", ""),
+                "modificador": cat.get("modificador", 0)
+            })
+        data["tramos_escala"] = tramos
+        self._data = data
+
     def get_actividades(self) -> list[dict]:
         """Retorna la lista de actividades con sus alícuotas."""
         return self._data.get("actividades", [])
@@ -119,7 +142,6 @@ class NormativaLoader:
         Incluye porcentajes por tramo para mayor precisión del LLM.
         """
         chunks = []
-        meta = self.get_meta()
 
         for act in self.get_actividades():
             tramos_text = ", ".join([f"T{k}: {v}%" for k, v in act.get('tramos_reduccion', {}).items()])

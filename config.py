@@ -61,12 +61,13 @@ class DatabaseConfig:
 
 class AgentConfig:
     provincia_activa: str = os.getenv("PROVINCIA_ACTIVA", "bsas")
-    use_fixtures: bool = os.getenv("USE_FIXTURES", "True").lower() == "true"
+    use_fixtures: bool = os.getenv("USE_FIXTURES", "False").lower() == "true"  # False = usa normativa real 2026
+    force_reindex: bool = os.getenv("FORCE_REINDEX", "False").lower() == "true"
     verbose_chain: bool = os.getenv("VERBOSE_CHAIN", "True").lower() == "true"
     # Cuántos casos previos del historial mostrar como referencia
     max_history_references: int = 3
     # Cuántos chunks RAG recuperar por búsqueda
-    rag_top_k: int = 5
+    rag_top_k: int = 8  # Aumentado para mejor contexto normativo
 
 
 # Instancias globales importables

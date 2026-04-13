@@ -135,15 +135,18 @@ st.markdown("""
 
 # --- HEADER SIMPLE ---
 def draw_header():
+    logo_b64 = get_base64_logo("logo_ll_digital")
+    logo_html = (
+        f'<img src="{logo_b64}" style="height:64px; object-fit:contain;">'
+        if logo_b64 else
+        '<span style="font-size:24px;font-weight:800;color:#1a3a6b;">LL Digital</span>'
+    )
     st.markdown(f"""
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 1rem;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span class="material-symbols-outlined" style="color: #001e40; font-size: 32px;">account_balance</span>
-                <span style="font-size: 24px; font-weight: 800; color: #001e40;">Lisicki Litvin</span>
-            </div>
-            <div style="text-align: right;">
-                <span style="color: #666; font-size: 14px;">Portal del Auditor Fiscal</span><br>
-                <span style="font-weight: 700; color: #001e40;">IIBB Tax Audit LL V1.0.0</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; border-bottom:2px solid #e8edf4; padding-bottom:1.2rem;">
+            {logo_html}
+            <div style="text-align:right;">
+                <span style="color:#888; font-size:13px; letter-spacing:0.02em;">Portal del Auditor Fiscal</span><br>
+                <span style="font-weight:700; color:#001e40; font-size:15px;">IIBB Tax Audit LL V1.0.0</span>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -192,19 +195,92 @@ def view_carga_datos():
                             processor.process_dataframe(df)
                             db.commit()
                             st.balloons()
-                            st.success("✅ Auditoría completada con éxito.")
-                            if st.button("🔎 Ver Resultado en Historial", use_container_width=True):
-                                st.session_state.selected_menu = "Historial de Auditorías"
-                                st.rerun()
+                            st.session_state.auditoria_completada = True
                         except Exception as e:
                             db.rollback()
                             st.error(f"❌ Error durante la auditoría: {e}")
+                            st.session_state.auditoria_completada = False
                         finally:
                             db.close()
+
+                if st.session_state.get("auditoria_completada"):
+                    st.success("✅ Auditoría completada con éxito.")
+                    if st.button("🔎 Ver Resultado en Historial", use_container_width=True):
+                        st.session_state.auditoria_completada = False
+                        st.session_state.selected_menu = "Historial de Auditorías"
+                        st.rerun()
             else:
                 st.error(f"❌ El archivo no cumple con el formato requerido. Columnas faltantes: {', '.join(missing_cols)}")
         except Exception as e:
             st.error(f"Error al leer el archivo: {e}")
+
+def _render_audit_detail(audit, db):
+    """Renderiza el detalle completo de una auditoría individual."""
+    import re as _re
+
+    if audit.resumen_ia:
+        st.markdown("**🤖 Resumen IA:**")
+        resumen_limpio = _re.sub(r'#{1,4}\s*', '', audit.resumen_ia)
+        resumen_limpio = _re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', resumen_limpio)
+        resumen_limpio = _re.sub(r'\*(.*?)\*', r'<em>\1</em>', resumen_limpio)
+        resumen_limpio = resumen_limpio.replace('\n', '<br>')
+        st.markdown(
+            f"""<div style="background:#f0f4fa;border-left:4px solid #1a3a6b;border-radius:6px;
+            padding:14px 18px;max-height:200px;overflow-y:auto;font-size:0.82rem;
+            line-height:1.6;color:#222;">{resumen_limpio}</div>""",
+            unsafe_allow_html=True
+        )
+        st.markdown("")
+
+    resultados = db.query(ResultadoActividad).filter(ResultadoActividad.auditoria_id == audit.id).all()
+    if resultados:
+        st.markdown("##### 📋 Actividades Auditadas")
+        df_res = pd.DataFrame([{
+            "Actividad":          r.actividad_desc or "—",
+            "NAES":               r.naes or "—",
+            "Alíc. Base (%)":     r.alicuota_base,
+            "Alíc. Sugerida (%)": r.alicuota_sugerida,
+            "Alíc. IA (%)":       r.alicuota_ia,
+            "Normativa":          r.normativa_ref or "—",
+        } for r in resultados])
+        st.dataframe(
+            df_res, use_container_width=True,
+            column_config={
+                "Actividad": st.column_config.TextColumn("Actividad", width="large"),
+                "Normativa": st.column_config.TextColumn("Normativa", width="medium"),
+            }
+        )
+        with st.expander("📄 Ver justificaciones IA por actividad"):
+            for r in resultados:
+                st.markdown(f"**{r.actividad_desc or r.naes}**")
+                st.write(r.justificacion or "Sin justificación registrada.")
+                st.divider()
+    else:
+        st.warning("Esta auditoría no tiene actividades registradas.")
+
+    archivos = db.query(ArchivoGenerado).filter(ArchivoGenerado.auditoria_id == audit.id).all()
+    if archivos:
+        st.markdown("##### 📥 Reportes Generados")
+        for arch in archivos:
+            try:
+                with open(arch.ruta_archivo, "rb") as f:
+                    st.download_button(
+                        f"Descargar {arch.tipo} — {arch.nombre_archivo}",
+                        f.read(), arch.nombre_archivo,
+                        key=f"dl_{arch.id}"
+                    )
+            except FileNotFoundError:
+                st.warning(f"Archivo no encontrado: {arch.nombre_archivo}")
+
+    if st.checkbox("⚙️ Acciones Avanzadas", key=f"adv_{audit.id}"):
+        if st.button("🗑️ Eliminar esta auditoría", use_container_width=True, key=f"del_{audit.id}"):
+            db.query(ArchivoGenerado).filter(ArchivoGenerado.auditoria_id == audit.id).delete()
+            db.query(ResultadoActividad).filter(ResultadoActividad.auditoria_id == audit.id).delete()
+            db.query(Auditoria).filter(Auditoria.id == audit.id).delete()
+            db.commit()
+            st.success("Auditoría eliminada.")
+            st.rerun()
+
 
 def view_historial():
     st.markdown('<h1>Historial de Auditorías</h1>', unsafe_allow_html=True)
@@ -217,73 +293,132 @@ def view_historial():
         db.close()
         return
 
-    # Selector de Auditoría
-    options = [f"🏢 CUIT: {a.cuit} | Ejercicio: {a.periodo} | ID: {a.id}" for a in auditorias]
-    selected_label = st.selectbox("Seleccione una auditoría:", options)
-    selected_id = int(selected_label.split("ID: ")[1])
-    audit = db.query(Auditoria).filter(Auditoria.id == selected_id).first()
+    from collections import defaultdict
+    por_cuit = defaultdict(list)
+    for a in auditorias:
+        por_cuit[a.cuit].append(a)
 
-    if audit:
-        st.divider()
+    # ══════════════════════════════════════════════════════════════════════════
+    # NIVEL 1 — Selector de Cliente
+    # ══════════════════════════════════════════════════════════════════════════
+    st.markdown("#### 👤 Paso 1 — Seleccione un cliente")
+    st.caption("Puede escribir el CUIT para filtrar rápidamente.")
 
-        # Info general
-        col1, col2, col3 = st.columns(3)
-        col1.metric("CUIT", audit.cuit)
-        col2.metric("Ejercicio", audit.periodo)
-        col3.metric("Estado", audit.estado or "—")
+    cuits_ordenados = sorted(por_cuit.keys())
+    cuit_options = {
+        cuit: f"🏢  {cuit}   ·   {len(por_cuit[cuit])} auditoría(s)  ·  "
+              f"Períodos: {', '.join(sorted({a.periodo for a in por_cuit[cuit]}, reverse=True))}"
+        for cuit in cuits_ordenados
+    }
 
-        if audit.resumen_ia:
-            st.info(f"**🤖 Resumen IA:**\n\n{audit.resumen_ia}")
+    # Preservar selección de cliente entre reruns
+    if "hist_cuit" not in st.session_state:
+        st.session_state.hist_cuit = cuits_ordenados[0]
 
-        # Resultados de actividades
-        resultados = db.query(ResultadoActividad).filter(ResultadoActividad.auditoria_id == audit.id).all()
+    selected_cuit = st.selectbox(
+        "Seleccione cliente (CUIT):",
+        options=cuits_ordenados,
+        format_func=lambda c: cuit_options[c],
+        index=cuits_ordenados.index(st.session_state.hist_cuit) if st.session_state.hist_cuit in cuits_ordenados else 0,
+        key="hist_cuit_select",
+        label_visibility="collapsed",
+    )
+    st.session_state.hist_cuit = selected_cuit
 
-        if resultados:
-            st.markdown("### 📋 Actividades Auditadas")
-            df_res = pd.DataFrame([{
-                "Actividad":          r.actividad_desc or "—",
-                "NAES":               r.naes or "—",
-                "Alíc. Base (%)":     r.alicuota_base,
-                "Alíc. Sugerida (%)": r.alicuota_sugerida,
-                "Alíc. IA (%)":       r.alicuota_ia,
-                "Normativa":          r.normativa_ref or "—",
-            } for r in resultados])
-            st.dataframe(df_res, use_container_width=True)
+    audits_cliente = sorted(por_cuit[selected_cuit], key=lambda a: (a.periodo, a.id))
 
-            # Detalle por actividad
-            with st.expander("📄 Ver justificaciones IA por actividad"):
-                for r in resultados:
-                    st.markdown(f"**{r.actividad_desc or r.naes}**")
-                    st.write(r.justificacion or "Sin justificación registrada.")
-                    st.divider()
-        else:
-            st.warning("Esta auditoría no tiene actividades registradas.")
+    # Resumen rápido del cliente seleccionado
+    periodos_cliente = sorted({a.periodo for a in audits_cliente}, reverse=True)
+    total_audits = len(audits_cliente)
+    st.markdown(
+        f"""<div style="background:#f0f4fa;border-radius:8px;padding:10px 16px;margin:8px 0 16px 0;
+            display:flex;gap:32px;align-items:center;">
+            <div><span style="font-size:0.75rem;color:#666;">CUIT</span><br>
+                <span style="font-weight:700;color:#001e40;font-size:1rem;">{selected_cuit}</span></div>
+            <div><span style="font-size:0.75rem;color:#666;">Períodos</span><br>
+                <span style="font-weight:600;color:#001e40;">{' · '.join(periodos_cliente)}</span></div>
+            <div><span style="font-size:0.75rem;color:#666;">Total auditorías</span><br>
+                <span style="font-weight:600;color:#001e40;">{total_audits}</span></div>
+        </div>""",
+        unsafe_allow_html=True
+    )
 
-        # Archivos descargables
-        if audit.archivos:
-            st.markdown("### 📥 Reportes Generados")
-            for arch in audit.archivos:
-                try:
-                    with open(arch.ruta_archivo, "rb") as f:
-                        st.download_button(
-                            f"Descargar {arch.tipo} — {arch.nombre_archivo}",
-                            f.read(),
-                            arch.nombre_archivo,
-                            key=f"dl_{arch.id}"
-                        )
-                except FileNotFoundError:
-                    st.warning(f"Archivo no encontrado: {arch.nombre_archivo}")
+    st.divider()
 
-        # Acciones avanzadas
-        st.divider()
-        if st.checkbox("⚙️ Acciones Avanzadas"):
-            if st.button("🗑️ Eliminar TODA esta auditoría", use_container_width=True):
-                db.query(ArchivoGenerado).filter(ArchivoGenerado.auditoria_id == audit.id).delete()
-                db.query(ResultadoActividad).filter(ResultadoActividad.auditoria_id == audit.id).delete()
-                db.query(Auditoria).filter(Auditoria.id == audit.id).delete()
-                db.commit()
-                st.success("Auditoría eliminada.")
-                st.rerun()
+    # ══════════════════════════════════════════════════════════════════════════
+    # NIVEL 2 — Selector de Auditoría (por período)
+    # ══════════════════════════════════════════════════════════════════════════
+    st.markdown("#### 📅 Paso 2 — Seleccione el período de auditoría")
+
+    por_periodo = defaultdict(list)
+    for a in audits_cliente:
+        por_periodo[a.periodo].append(a)
+
+    # Construir opciones de período con info de la definitiva
+    periodo_options = {}
+    for periodo in periodos_cliente:
+        audits_p = sorted(por_periodo[periodo], key=lambda a: a.id)
+        definitiva = audits_p[-1]
+        n_iter = len(audits_p) - 1
+        iter_str = f"  ·  {n_iter} iteración(es) previa(s)" if n_iter > 0 else ""
+        estado_icon = {"COMPLETADO": "✅", "ERROR": "❌", "PROCESANDO": "⏳"}.get(definitiva.estado or "", "○")
+        periodo_options[periodo] = f"{estado_icon}  Período {periodo}   —   Definitiva ID #{definitiva.id}{iter_str}"
+
+    # Resetear el selector de período cuando cambia el cliente
+    if "hist_cuit_prev" not in st.session_state or st.session_state.hist_cuit_prev != selected_cuit:
+        st.session_state.hist_cuit_prev = selected_cuit
+        if "hist_periodo_select" in st.session_state:
+            del st.session_state["hist_periodo_select"]
+
+    selected_periodo = st.selectbox(
+        "Seleccione período:",
+        options=periodos_cliente,
+        format_func=lambda p: periodo_options[p],
+        key="hist_periodo_select",
+        label_visibility="collapsed",
+    )
+
+    st.divider()
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # NIVEL 3 — Detalle de la auditoría definitiva del período seleccionado
+    # ══════════════════════════════════════════════════════════════════════════
+    audits_periodo = sorted(por_periodo[selected_periodo], key=lambda a: a.id)
+    definitiva = audits_periodo[-1]
+    anteriores = audits_periodo[:-1]
+
+    estado_color = {"COMPLETADO": "#2e7d32", "ERROR": "#c62828", "PROCESANDO": "#e65100"}.get(
+        definitiva.estado or "", "#555"
+    )
+    iter_info = f" · {len(anteriores)} iteración(es) previa(s)" if anteriores else ""
+    st.markdown(
+        f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">'
+        f'<span style="font-size:1.05rem;font-weight:700;color:#001e40;">📋 Auditoría Definitiva — Período {selected_periodo}</span>'
+        f'<span style="background:{estado_color};color:#fff;font-size:0.72rem;font-weight:600;padding:3px 12px;border-radius:12px;">{definitiva.estado}</span>'
+        f'<span style="color:#888;font-size:0.78rem;">ID #{definitiva.id}{iter_info}</span>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("CUIT", definitiva.cuit)
+    col2.metric("Ejercicio", definitiva.periodo)
+    col3.metric("Fecha proceso", definitiva.fecha_proceso.strftime("%d/%m/%Y") if definitiva.fecha_proceso else "—")
+
+    _render_audit_detail(definitiva, db)
+
+    # Iteraciones previas colapsadas
+    if anteriores:
+        with st.expander(f"🔁 Ver {len(anteriores)} iteración(es) anterior(es) de este período"):
+            for audit_prev in reversed(anteriores):
+                fecha_str = audit_prev.fecha_proceso.strftime("%d/%m/%Y %H:%M") if audit_prev.fecha_proceso else "—"
+                st.markdown(
+                    f"<span style='color:#888;font-size:0.8rem;font-weight:600;'>"
+                    f"Iteración ID #{audit_prev.id} — {fecha_str} — {audit_prev.estado}</span>",
+                    unsafe_allow_html=True
+                )
+                _render_audit_detail(audit_prev, db)
+                st.divider()
 
     db.close()
 
@@ -460,7 +595,14 @@ def view_configuracion():
 draw_header()
 
 with st.sidebar:
-    st.markdown("## 🔍 IIBB Tax Audit LL")
+    _logo_b64 = get_base64_logo("logo_ll_digital")
+    if _logo_b64:
+        st.markdown(
+            f'<div style="padding:8px 0 12px 0;"><img src="{_logo_b64}" style="width:80%;max-width:160px;object-fit:contain;"></div>',
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown("## 🔍 IIBB Tax Audit LL")
 
     nav_items = [
         ("📤 Carga de Datos",          "Carga de Datos"),

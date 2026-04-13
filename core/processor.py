@@ -4,15 +4,14 @@ from pathlib import Path
 from sqlalchemy.orm import Session
 import re
 from core.agent import IIBBAgent, AgentInput, ActividadInput
+from config import agent_cfg
 from core.database import Auditoria, ResultadoActividad, ArchivoGenerado
 from output.word_generator import generar_informe_word
-import os
-
 class AuditorProcessor:
     def __init__(self, db: Session, output_base_dir: str = "resultados"):
         self.db = db
         self.agent = IIBBAgent()
-        self.agent.initialize()
+        self.agent.initialize(force_reindex=agent_cfg.force_reindex)
         self.output_base_dir = Path(output_base_dir)
         self.output_base_dir.mkdir(parents=True, exist_ok=True)
 
@@ -24,7 +23,12 @@ class AuditorProcessor:
         total_rows = len(df)
         
         for index, row in df.iterrows():
-            cuit = str(row.get('Cuit', ''))
+            # Normalizar CUIT al formato XX-XXXXXXXX-X requerido por AgentInput
+            cuit_raw = re.sub(r'[^\d]', '', str(row.get('Cuit', '')))
+            if len(cuit_raw) == 11:
+                cuit = f"{cuit_raw[:2]}-{cuit_raw[2:10]}-{cuit_raw[10]}"
+            else:
+                cuit = str(row.get('Cuit', '')).strip()
             periodo_raw = str(row.get('Periodo', ''))
             # Normalizar periodo a Año únicamente (ANUAL)
             periodo = re.sub(r"\D", "", periodo_raw)[:4] if periodo_raw else datetime.now().strftime("%Y")
@@ -59,9 +63,10 @@ class AuditorProcessor:
                 ali_ant = float(row.get('Alicuota_Anterior', 0)) if pd.notna(row.get('Alicuota_Anterior')) else None
                 sit_esp = str(row.get('Situacion_Especial', ''))
                 
-                # 3. Mapear para la IA (Unificamos las actividades para el agente)
+                # 3. Mapear para la IA — separar descripción NAES de actividad real
                 act_input = ActividadInput(
-                    desc=f"{desc_naes} | REAL: {desc_real}",
+                    desc=desc_naes or desc_real,   # desc = NAES/ARCA para búsqueda técnica
+                    desc_real=desc_real,            # desc_real = lo que realmente hace el contribuyente
                     naes=code_naes
                 )
                 

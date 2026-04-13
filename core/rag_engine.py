@@ -48,15 +48,35 @@ class RAGEngine:
 
     def initialize(self, force_reindex: bool = False) -> None:
         """Inicializa ChromaDB y carga/crea el índice de normativas."""
+        import shutil
+
         # Asegurar que el directorio existe
         paths_cfg.chroma_db.mkdir(parents=True, exist_ok=True)
 
         embedding_fn = _get_embedding_function()
 
-        self._client = chromadb.PersistentClient(
-            path=str(paths_cfg.chroma_db),
-            settings=Settings(anonymized_telemetry=False)
-        )
+        try:
+            self._client = chromadb.PersistentClient(
+                path=str(paths_cfg.chroma_db),
+                settings=Settings(anonymized_telemetry=False)
+            )
+            # Validación rápida: si el schema está roto lanzará excepción aquí
+            self._client.list_collections()
+        except Exception as e:
+            if "no such table" in str(e).lower() or "tenants" in str(e).lower() or "sqlite" in str(e).lower():
+                console.print(f"[yellow]RAG: Schema de ChromaDB desactualizado. Regenerando índice...[/yellow]")
+                try:
+                    shutil.rmtree(str(paths_cfg.chroma_db))
+                except Exception:
+                    pass
+                paths_cfg.chroma_db.mkdir(parents=True, exist_ok=True)
+                self._client = chromadb.PersistentClient(
+                    path=str(paths_cfg.chroma_db),
+                    settings=Settings(anonymized_telemetry=False)
+                )
+                force_reindex = True  # Forzar reindexado porque borramos todo
+            else:
+                raise
 
         collection_name = f"normativas_{self.provincia}"
 

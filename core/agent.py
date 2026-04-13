@@ -5,12 +5,12 @@ Implementa la lógica de auditoría usando validación estricta de esquemas.
 """
 
 from __future__ import annotations
-from typing import Any, List, Optional
-from pydantic import BaseModel, Field, field_validator
+from typing import List, Optional
+from pydantic import BaseModel, Field
 import re
 
 from rich.console import Console
-from config import agent_cfg, llm_cfg
+from config import agent_cfg
 from core.rag_engine import RAGEngine
 from core.tax_calculator import TaxCalculator, AlicuotaResult
 from core.audit_module import AuditModule, AuditoriaResult
@@ -18,7 +18,6 @@ from memory.case_history import CaseHistory
 from prompts.system_prompt import SYSTEM_PROMPT, build_analysis_prompt
 from output.formatter import format_resultado
 import logging
-from datetime import datetime
 
 # Configuración de Logging Detallado
 log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -35,7 +34,8 @@ console = Console()
 
 class ActividadInput(BaseModel):
     """Sub-modelo estandarizado para una actividad económica."""
-    desc: str = Field(..., min_length=3)
+    desc: str = Field(..., min_length=3)        # Descripción NAES/ARCA (normativa)
+    desc_real: Optional[str] = None             # Descripción real del contribuyente
     naes: Optional[str] = None
 
 class AgentInput(BaseModel):
@@ -143,8 +143,16 @@ class IIBBAgent:
         for i, act in enumerate(inputs.actividades):
             console.print(f"[bold blue]PASO {i+1}: Analizando '{act.desc[:30]}...'[/bold blue]")
             
-            # Recuperar normativa vía RAG
-            contexto = self.rag.search_as_context(f"alicuota para {act.desc}")
+            # Recuperar normativa vía RAG — combina NAES + descripción ARCA + descripción real
+            rag_parts = []
+            if act.naes:
+                rag_parts.append(f"NAES {act.naes}")
+            if act.desc:
+                rag_parts.append(act.desc)
+            if act.desc_real and act.desc_real != act.desc:
+                rag_parts.append(act.desc_real)
+            rag_query = " ".join(rag_parts) if rag_parts else "alicuota actividad"
+            contexto = self.rag.search_as_context(rag_query)
             contextos_legales.append(contexto)
             
             # Calcular alícuota técnica (Validador estructural)
@@ -166,14 +174,33 @@ class IIBBAgent:
 
         # PASO 3: Construcción de Prompt Consolidado
         full_normativa = "\n\n".join(contextos_legales)
+        primer_res = resultados_calc[0] if resultados_calc else None
+        # Consolidar warnings del calculador para avisarle al LLM
+        calc_warnings = []
+        for res in resultados_calc:
+            calc_warnings.extend(res.warnings)
+        # Construir lista estructurada de actividades para el prompt
+        actividades_prompt = []
+        for i, act in enumerate(inputs.actividades, 1):
+            actividades_prompt.append({
+                "numero": i,
+                "naes": act.naes or "A determinar",
+                "desc_naes": act.desc,
+                "desc_real": act.desc_real or act.desc,
+            })
+
         prompt = build_analysis_prompt(
             cuit=inputs.cuit,
-            actividades_desc="; ".join([a.desc for a in inputs.actividades]),
+            actividades=actividades_prompt,
             volumen_ventas_anual=inputs.volumen_ventas_anual,
             provincia_id=inputs.provincia_id,
+            alicuota_periodo_anterior=inputs.alicuota_periodo_anterior,
             situacion_especial=inputs.situacion_especial,
             context_normativa=full_normativa,
-            context_historial=context_historial
+            context_historial=context_historial,
+            tramo_info=primer_res.categoria_volumen if primer_res else "",
+            alicuota_tecnica=primer_res.alicuota_final if primer_res else None,
+            calc_warnings=calc_warnings,
         )
 
         # PASO 4: Invocación al LLM (con retry automático para rate limits)
@@ -220,7 +247,8 @@ class IIBBAgent:
                 # Quitamos la etiqueta de resumen para la justificación larga
                 justificacion = full_content.replace(match.group(0), "").strip()
             else:
-                resumen = full_content[:300].replace("\n", " ") + "..."
+                # El LLM no usó el tag — usamos el contenido completo como resumen
+                resumen = full_content.strip()
                 justificacion = full_content
 
             # Extracción del dictamen numérico IA para cada actividad
@@ -233,6 +261,11 @@ class IIBBAgent:
                         if rate_normalizado:
                             resultados_calc[idx].alicuota_ia = float(rate_normalizado)
                     except: pass
+
+            # Fallback: si el LLM no devolvió el tag [ALICUOTA_IA], usar la alícuota técnica calculada
+            for res in resultados_calc:
+                if res.alicuota_ia == 0.0 and res.alicuota_final > 0.0:
+                    res.alicuota_ia = res.alicuota_final
 
             # Extracción de justificaciones individuales por actividad
             for i in range(len(resultados_calc)):
@@ -281,7 +314,7 @@ class IIBBAgent:
 
         # PASO 5: Auditoría Interanual
         auditoria_res = None
-        if inputs.alicuota_periodo_anterior is not None:
+        if inputs.alicuota_periodo_anterior is not None and resultados_calc:
             auditor = AuditModule(rag_engine=self.rag)
             auditoria_res = auditor.analizar(
                 alicuota_actual=resultados_calc[0].alicuota_final,
@@ -291,14 +324,15 @@ class IIBBAgent:
             )
 
         # PASO 6: Registro en el Historial
+        primer_resultado = resultados_calc[0] if resultados_calc else AlicuotaResult()
         caso_id = self.history.register_case(
             cuit=inputs.cuit,
             provincia_id=inputs.provincia_id,
             actividades_desc="; ".join([a.desc for a in inputs.actividades]),
             volumen_ventas_anual=inputs.volumen_ventas_anual,
-            alicuota_determinada=resultados_calc[0].alicuota_final,
-            norma_citada=resultados_calc[0].norma_ref_actividad,
-            articulo_citado=resultados_calc[0].articulo_actividad,
+            alicuota_determinada=primer_resultado.alicuota_final,
+            norma_citada=primer_resultado.norma_ref_actividad,
+            articulo_citado=primer_resultado.articulo_actividad,
             naes_code=inputs.actividades[0].naes,
             situacion_especial=inputs.situacion_especial,
             analista=inputs.analista,

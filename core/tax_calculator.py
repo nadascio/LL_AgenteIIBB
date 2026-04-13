@@ -26,10 +26,6 @@ class AlicuotaResult:
     alicuota_base: float = 0.0
     norma_ref_actividad: str = ""
     articulo_actividad: str = ""
-    
-    # Dictamen de la IA (Llenado por el Agente después)
-    alicuota_ia: float = 0.0
-    justificacion: str = ""
 
     # Escala de volumen
     categoria_volumen: str = ""
@@ -40,12 +36,14 @@ class AlicuotaResult:
     beneficios_aplicados: list[dict] = field(default_factory=list)
     reduccion_total_pct: float = 0.0
 
-    # Resultado final
+    # Resultado final (calculado por TaxCalculator)
     alicuota_final: float = 0.0
-    alicuota_ia: float = 0.0  # Determinado por el Agente LL
 
-    # Warnings y notas
+    # Dictamen IA (completado por el Agente después de invocar el LLM)
+    alicuota_ia: float = 0.0
     justificacion: str = ""
+
+    # Metadata
     warnings: list[str] = field(default_factory=list)
     match_score: float = 0.0  # Similitud con la actividad más cercana (0-1)
 
@@ -96,6 +94,14 @@ class TaxCalculator:
         if not actividad:
             actividad, score = self._find_by_description(actividades_desc, actividades)
             result.match_score = score
+            # Umbral mínimo: si el match es muy bajo, no aplicar una alícuota al azar
+            if score < 0.25:
+                result.warnings.append(
+                    f"NAES '{naes_code or 'N/A'}' no encontrado y la descripción '{actividades_desc[:50]}' "
+                    f"no coincide suficientemente con ninguna actividad de la normativa (score={score:.2f}). "
+                    "Requiere clasificación manual por el analista."
+                )
+                return result
 
         if not actividad:
             result.warnings.append("No se encontró una actividad equivalente. Requiere clasificación manual.")
