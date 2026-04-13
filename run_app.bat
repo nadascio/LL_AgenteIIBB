@@ -1,8 +1,14 @@
 @echo off
-TITLE Agente IIBB - Tax Audit AI
+:: Truco: Título temporal para evitar que el script se mate a sí mismo durante la limpieza
+TITLE Limpiador_Cerrando_Duplicados
+taskkill /F /FI "WINDOWTITLE eq Agente IIBB - Tax Audit LL*" /T >nul 2>&1
+taskkill /F /FI "WINDOWTITLE eq Agente IIBB - Tax Audit AI*" /T >nul 2>&1
+
+TITLE Agente IIBB - Tax Audit LL
 echo ========================================================
-echo   Lisicki Litvin - Agente IIBB (Tax Audit AI)
+echo   Lisicki Litvin - IIBB Tax Audit LL
 echo   Iniciando servidor local...
+echo   (Se han cerrado instancias previas para evitar conflictos)
 echo ========================================================
 echo.
 

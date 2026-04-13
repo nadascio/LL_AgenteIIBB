@@ -32,7 +32,7 @@ def generar_informe_word(
     p = doc.add_paragraph()
     p.add_run(f"CUIT del Contribuyente: ").bold = True
     p.add_run(f"{cuit}\n")
-    p.add_run(f"Período Analizado: ").bold = True
+    p.add_run(f"Ejercicio Fiscal: ").bold = True
     p.add_run(f"{periodo}\n")
     p.add_run(f"Jurisdicción: ").bold = True
     p.add_run(f"{provincia_id.upper()}\n")

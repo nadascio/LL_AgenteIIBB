@@ -41,14 +41,18 @@ def save_config_to_env(backend: str, model: str, api_key: str = "", base_url: st
             content = replace_or_append(content, "GEMINI_MODEL", model)
             if api_key:
                 content = replace_or_append(content, "GEMINI_API_KEY", api_key)
-        elif backend == "openai":
-            content = replace_or_append(content, "OPENAI_MODEL", model)
-            if api_key:
-                content = replace_or_append(content, "OPENAI_API_KEY", api_key)
         elif backend == "ollama":
             content = replace_or_append(content, "OLLAMA_MODEL", model)
             if base_url:
                 content = replace_or_append(content, "OLLAMA_BASE_URL", base_url)
+        elif backend == "openai":
+            content = replace_or_append(content, "OPENAI_MODEL", model)
+            if api_key:
+                content = replace_or_append(content, "OPENAI_API_KEY", api_key)
+        elif backend == "anthropic":
+            content = replace_or_append(content, "ANTHROPIC_MODEL", model)
+            if api_key:
+                content = replace_or_append(content, "ANTHROPIC_API_KEY", api_key)
         
         ENV_PATH.write_text(content, encoding="utf-8")
         return True
@@ -93,7 +97,7 @@ def test_connection(
             m.generate_content("di ok")
             latency_ms = int((time.time() - start) * 1000)
             return {
-                "status": "ok",
+                "status": "success",
                 "message": f"Conexion exitosa con {model}. Latencia: {latency_ms}ms.",
                 "latency_ms": latency_ms,
                 "models": [model]
@@ -142,7 +146,7 @@ def test_connection(
             if not models:
                 # Servidor responde pero sin modelos
                 return {
-                    "status": "ok",
+                    "status": "success",
                     "message": f"Ollama conectado pero sin modelos instalados. Ejecuta: ollama pull {model or 'qwen2.5:7b'}",
                     "latency_ms": int((time.time() - start) * 1000),
                     "models": []
@@ -153,7 +157,7 @@ def test_connection(
             llm.invoke("di ok")
             latency_ms = int((time.time() - start) * 1000)
             return {
-                "status": "ok",
+                "status": "success",
                 "message": f"Ollama ok. Modelo '{model}' respondio en {latency_ms}ms.",
                 "latency_ms": latency_ms,
                 "models": models
@@ -183,7 +187,7 @@ def test_connection(
             llm.invoke("di ok")
             latency_ms = int((time.time() - start) * 1000)
             return {
-                "status": "ok",
+                "status": "success",
                 "message": f"OpenAI ok. Modelo '{model}' respondio en {latency_ms}ms.",
                 "latency_ms": latency_ms,
                 "models": [model]
@@ -196,6 +200,26 @@ def test_connection(
             elif "429" in err or "quota" in err.lower():
                 return {"status": "quota_error", "message": "Cuota de OpenAI agotada.", "latency_ms": latency_ms, "models": []}
             return {"status": "error", "message": f"Error OpenAI: {err[:200]}", "latency_ms": latency_ms, "models": []}
+    
+    # ── ANTHROPIC (CLAUDE) ───────────────────────────────────────────────────
+    elif backend == "anthropic":
+        try:
+            from langchain_anthropic import ChatAnthropic
+            llm = ChatAnthropic(model=model, api_key=api_key, temperature=0)
+            llm.invoke("di ok")
+            latency_ms = int((time.time() - start) * 1000)
+            return {
+                "status": "success",
+                "message": f"Anthropic ok. Modelo '{model}' respondio en {latency_ms}ms.",
+                "latency_ms": latency_ms,
+                "models": [model]
+            }
+        except Exception as e:
+            err = str(e)
+            latency_ms = int((time.time() - start) * 1000)
+            if "401" in err or "authentication" in err.lower():
+                return {"status": "auth_error", "message": "API Key de Anthropic invalida.", "latency_ms": latency_ms, "models": []}
+            return {"status": "error", "message": f"Error Anthropic: {err[:200]}", "latency_ms": latency_ms, "models": []}
     
     return {"status": "error", "message": f"Backend desconocido: {backend}", "latency_ms": 0, "models": []}
 
@@ -211,4 +235,6 @@ def get_current_config() -> dict:
         "openai_model": os.getenv("OPENAI_MODEL", "gpt-4o"),
         "ollama_base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         "ollama_model": os.getenv("OLLAMA_MODEL", "qwen2.5:7b"),
+        "anthropic_api_key": os.getenv("ANTHROPIC_API_KEY", ""),
+        "anthropic_model": os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20240620"),
     }

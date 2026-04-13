@@ -26,6 +26,10 @@ class AlicuotaResult:
     alicuota_base: float = 0.0
     norma_ref_actividad: str = ""
     articulo_actividad: str = ""
+    
+    # Dictamen de la IA (Llenado por el Agente después)
+    alicuota_ia: float = 0.0
+    justificacion: str = ""
 
     # Escala de volumen
     categoria_volumen: str = ""

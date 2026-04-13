@@ -66,3 +66,14 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def init_db():
     Base.metadata.create_all(bind=engine)
     print(f"Base de datos inicializada en: {db_cfg.uri}")
+
+def clear_all_audits(db):
+    """Borra todos los registros de auditoría y resultados."""
+    try:
+        db.query(Auditoria).delete()
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        print(f"Error al limpiar DB: {e}")
+        return False

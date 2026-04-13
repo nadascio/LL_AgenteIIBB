@@ -16,8 +16,10 @@ __pycache__/
 # Bases de datos y memoria local
 data/*.db
 memory/*.json
+memory/*.db
 normativas/.chromadb/
 chroma/
+*.log
 
 # Reportes generados (Evitar subir datos de clientes)
 resultados/

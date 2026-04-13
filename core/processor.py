@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import datetime
 from pathlib import Path
 from sqlalchemy.orm import Session
+import re
 from core.agent import IIBBAgent, AgentInput, ActividadInput
 from core.database import Auditoria, ResultadoActividad, ArchivoGenerado
 from output.word_generator import generar_informe_word
@@ -24,7 +25,11 @@ class AuditorProcessor:
         
         for index, row in df.iterrows():
             cuit = str(row.get('Cuit', ''))
-            periodo = str(row.get('Periodo', ''))
+            periodo_raw = str(row.get('Periodo', ''))
+            # Normalizar periodo a Año únicamente (ANUAL)
+            periodo = re.sub(r"\D", "", periodo_raw)[:4] if periodo_raw else datetime.now().strftime("%Y")
+            if not periodo: periodo = datetime.now().strftime("%Y")
+            
             juris_code = int(row.get('Codigo_Jurisdiccion', 0))
             provincia = JURISDICCIONES.get(juris_code, f"Jurisdiccion_{juris_code}")
             

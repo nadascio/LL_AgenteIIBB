@@ -17,6 +17,19 @@ from core.audit_module import AuditModule, AuditoriaResult
 from memory.case_history import CaseHistory
 from prompts.system_prompt import SYSTEM_PROMPT, build_analysis_prompt
 from output.formatter import format_resultado
+import logging
+from datetime import datetime
+
+# Configuración de Logging Detallado
+log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+log_file = "agente_debug.log"
+file_handler = logging.FileHandler(log_file, encoding='utf-8')
+file_handler.setFormatter(log_formatter)
+
+logger = logging.getLogger("AgenteIIBB")
+logger.setLevel(logging.INFO)
+if not logger.handlers:
+    logger.addHandler(file_handler)
 
 console = Console()
 
@@ -28,7 +41,7 @@ class ActividadInput(BaseModel):
 class AgentInput(BaseModel):
     """Schema de input principal con validación de datos sensibles."""
     cuit: str = Field(..., pattern=r"^\d{2}-\d{8}-\d{1}$")
-    periodo: str = Field(..., description="Período fiscal analizado (ej: 2026)")
+    periodo: str = Field(..., description="Ejercicio fiscal analizado (ej: 2026)")
     volumen_ventas_anual: float = Field(..., gt=0)
     actividades: List[ActividadInput] = Field(..., min_length=1)
     provincia_id: str
@@ -89,8 +102,15 @@ class IIBBAgent:
                 api_key=_cfg.openai_api_key,
                 temperature=0.2
             )
+        elif backend == "anthropic":
+            from langchain_anthropic import ChatAnthropic
+            return ChatAnthropic(
+                model=_cfg.anthropic_model,
+                anthropic_api_key=_cfg.anthropic_api_key,
+                temperature=0.2
+            )
         else:
-            raise ValueError(f"Backend de LLM desconocido: '{backend}'. Usa 'gemini', 'ollama' o 'openai'.")
+            raise ValueError(f"Backend de LLM desconocido: '{backend}'. Usa 'gemini', 'ollama', 'openai' o 'anthropic'.")
 
     def initialize(self, force_reindex: bool = False) -> None:
         if self._initialized:
@@ -101,6 +121,8 @@ class IIBBAgent:
 
     def reset_llm(self) -> None:
         """Reinicia el LLM para que tome la nueva config del .env. Util tras cambiar backend desde la UI."""
+        from config import llm_cfg as _cfg
+        _cfg.reload()
         self._llm = self._build_llm()
 
     def analizar(self, inputs: AgentInput) -> AgentOutput:
@@ -109,6 +131,10 @@ class IIBBAgent:
         """
         if not self._initialized:
             self.initialize()
+
+        from config import llm_cfg as _cfg
+        backend = _cfg.backend.lower()
+        model_name = getattr(_cfg, f"{backend}_model", "desconocido")
 
         resultados_calc = []
         contextos_legales = []
@@ -157,10 +183,17 @@ class IIBBAgent:
             _response = None
             for _attempt in range(_max_retries):
                 try:
+                    logger.info(f"--- NUEVA CONSULTA LLM ({backend.upper()}) ---")
+                    logger.info(f"MODELO: {getattr(_cfg, backend + '_model', '?')}")
+                    logger.info(f"PROMPT ENVIADO:\n{prompt}\n")
+
                     _response = self._llm.invoke([
                         ("system", SYSTEM_PROMPT),
                         ("human", prompt)
                     ])
+                    
+                    logger.info(f"RESPUESTA RECIBIDA:\n{_response.content}\n")
+                    logger.info("------------------------------------------")
                     break  # Éxito — salir del loop
                 except Exception as _retry_err:
                     _err_str = str(_retry_err).lower()
@@ -190,19 +223,26 @@ class IIBBAgent:
                 resumen = full_content[:300].replace("\n", " ") + "..."
                 justificacion = full_content
 
-            # Extracción del dictamen numérico IA para cada actividad (robusto a espacios, % y símbolos)
+            # Extracción del dictamen numérico IA para cada actividad
             ia_rates_raw = re.findall(r"\[ALICUOTA_IA:\s*(.*?)\]", full_content)
             for idx, rate_raw in enumerate(ia_rates_raw):
                 if idx < len(resultados_calc):
                     try:
-                        # Limpiar: dejar solo números, coma y punto
                         clean_rate = re.sub(r"[^\d\.,]", "", rate_raw)
-                        # Normalizar: coma a punto
                         rate_normalizado = clean_rate.replace(",", ".")
                         if rate_normalizado:
                             resultados_calc[idx].alicuota_ia = float(rate_normalizado)
-                    except (ValueError, TypeError):
-                        console.print(f"[yellow]⚠️ No se pudo parsear alícuota: {rate_raw}[/yellow]")
+                    except: pass
+
+            # Extracción de justificaciones individuales por actividad
+            for i in range(len(resultados_calc)):
+                just_act_pattern = rf"\[JUSTIFICACION_ACT_{i+1}:\s*(.*?)\]"
+                match_just = re.search(just_act_pattern, full_content, re.DOTALL)
+                if match_just:
+                    resultados_calc[i].justificacion = match_just.group(1).strip()
+                elif i == 0 and len(resultados_calc) == 1:
+                    # Fallback si solo hay una actividad y no puso la etiqueta numerada
+                    resultados_calc[i].justificacion = justificacion
             
             # Limpiamos las etiquetas internas de IA de la justificación final para que no sea repetitivo
             justificacion = re.sub(r"\[ALICUOTA_IA:.*?\]", "", justificacion).strip()
@@ -211,6 +251,7 @@ class IIBBAgent:
             import traceback
             error_msg = traceback.format_exc()
             console.print(f"[bold red]ERROR EN EL AGENTE:[/bold red]\n{error_msg}")
+            logger.error(f"ERROR EN EL AGENTE: {str(e)}\n{error_msg}")
             
             # Clasificar el error para dar un mensaje claro e informativo
             err_str = str(e).lower()
