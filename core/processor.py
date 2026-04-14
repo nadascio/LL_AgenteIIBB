@@ -95,6 +95,7 @@ class AuditorProcessor:
                         alicuota_base=getattr(res_act, 'alicuota_base', 0.0),
                         alicuota_sugerida=getattr(res_act, 'alicuota_final', 0.0),
                         alicuota_ia=ia_rate,
+                        alicuota_anterior=ali_ant,
                         justificacion=getattr(res_act, 'justificacion', ""),
                         normativa_ref=f"{getattr(res_act, 'norma_ref_actividad', 'N/A')} - Art. {getattr(res_act, 'articulo_actividad', 'N/A')}"
                     )
@@ -152,6 +153,7 @@ class AuditorProcessor:
                 
                 nueva_auditoria.estado = "COMPLETADO"
                 nueva_auditoria.resumen_ia = resultado_ia.resumen_ejecutivo
+                nueva_auditoria.caso_id = resultado_ia.caso_id
                 processed_count += 1
                 
             except Exception as e:

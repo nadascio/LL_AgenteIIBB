@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lisicki Litvin - Carga de Datos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #fcfdfe; color: #001b3d; }
+        .bg-ll-navy { background-color: #001b3d; }
+        .ll-navy { color: #001b3d; }
+        .table-ll { width: 100%; border-collapse: separate; border-spacing: 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,27,61,0.03); }
+        .table-ll th { background: #f8fafc; text-align: left; padding: 16px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; border-bottom: 1px solid #f1f5f9; }
+        .table-ll td { padding: 16px; font-size: 0.9rem; border-bottom: 1px solid #f8fafc; color: #1e293b; }
+        .btn-action { background: #f1f5f9; color: #001b3d; padding: 10px 16px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn-action:hover { background: #e2e8f0; }
+        .btn-primary { background: #001b3d; color: white; }
+        .btn-primary:hover { background: #002d66; }
+        .tab-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; padding: 15px 0; z-index: 100; }
+        .tab-item { text-align: center; color: #94a3b8; font-size: 0.7rem; font-weight: 600; }
+        .tab-item.active { color: #001b3d; }
+    </style>
+</head>
+<body class="pb-32">
+
+    <header class="bg-white py-6 px-10 flex justify-between items-center border-b border-slate-100">
+        <div class="flex items-center">
+            <div class="w-8 h-8 bg-ll-navy rounded flex items-center justify-center mr-3 text-white font-bold">L</div>
+            <h1 class="text-xl font-semibold tracking-tight uppercase">Lisicki Litvin</h1>
+        </div>
+        <div class="flex gap-4">
+             <button class="btn-action"><span class="text-lg">⚙️</span> Configuración</button>
+             <div class="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm overflow-hidden">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nahuel" alt="User">
+             </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-10 pt-16">
+        
+        <div class="flex justify-between items-end mb-12">
+            <div>
+                <h2 class="text-4xl font-bold mb-3 ll-navy">Carga Masiva<br>de Comprobantes</h2>
+                <p class="text-slate-500 font-medium tracking-tight">Sistema de Auditoría Inteligente v2.0</p>
+            </div>
+            <div class="flex gap-4">
+                <button class="btn-action bg-slate-100 uppercase text-[10px] py-4 px-6">
+                    <span class="text-lg">📁</span> Importar Excel
+                </button>
+                <button class="btn-action btn-primary uppercase text-[10px] py-4 px-6 shadow-lg shadow-ll-navy/20">
+                    <span class="text-lg">💾</span> Guardar Carga
+                </button>
+            </div>
+        </div>
+
+        <!-- SEARCH AND TOOLS -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="relative w-96">
+                <span class="absolute left-4 top-3 text-slate-400">🔍</span>
+                <input type="text" placeholder="Filtrar por CUIT, Periodo o Provincia..." class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-md text-sm focus:outline-none focus:border-ll-navy">
+            </div>
+            <button class="text-ll-navy font-bold text-xs uppercase flex items-center gap-2 hover:underline">
+                <span class="text-lg">⊕</span> Nueva Fila
+            </button>
+        </div>
+
+        <!-- THE TABLE -->
+        <table class="table-ll">
+            <thead>
+                <tr>
+                    <th class="w-16">#</th>
+                    <th>CUIT</th>
+                    <th>Periodo</th>
+                    <th>Provincia</th>
+                    <th>Neto Gravado</th>
+                    <th>Alícuota (LL)</th>
+                    <th>Impuesto</th>
+                    <th class="w-20"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-slate-400 font-bold">1</td>
+                    <td class="font-bold">30-71452891-9</td>
+                    <td>2026-03</td>
+                    <td><span class="bg-blue-50 px-2 py-1 rounded text-blue-700 text-[10px] font-bold uppercase">BSAS</span></td>
+                    <td>$ 1.500.200,00</td>
+                    <td><span class="font-bold">3.00%</span></td>
+                    <td class="font-bold">$ 45.006,00</td>
+                    <td class="text-right"><button class="text-slate-300 hover:text-red-500">🗑️</button></td>
+                </tr>
+                <tr>
+                    <td class="text-slate-400 font-bold">2</td>
+                    <td class="font-bold">27-33901244-1</td>
+                    <td>2026-03</td>
+                    <td><span class="bg-purple-50 px-2 py-1 rounded text-purple-700 text-[10px] font-bold uppercase">CABA</span></td>
+                    <td>$ 850.000,00</td>
+                    <td><span class="font-bold">1.00%</span></td>
+                    <td class="font-bold">$ 8.500,00</td>
+                    <td class="text-right"><button class="text-slate-300 hover:text-red-500">🗑️</button></td>
+                </tr>
+                <tr class="bg-slate-50/30">
+                    <td class="text-slate-300">3</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- STATUS BAR -->
+        <div class="mt-10 flex gap-12 text-center border-t border-slate-100 pt-10">
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Total Filas</p>
+                <p class="text-xl font-bold ll-navy">15.402</p>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Errores de Validación</p>
+                <p class="text-xl font-bold text-red-500">12</p>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Motor de Reglas</p>
+                <p class="text-xl font-bold text-cyan-500">ONLINE</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- BOTTOM TAB NAVIGATION -->
+    <nav class="tab-nav">
+        <div class="tab-item">
+            <div class="text-xl mb-1">📖</div>
+            <div>Guía</div>
+        </div>
+        <div class="tab-item active">
+            <div class="text-xl mb-1">📤</div>
+            <div>Carga</div>
+        </div>
+        <div class="tab-item">
+            <div class="text-xl mb-1">📋</div>
+            <div>Ejemplo</div>
+        </div>
+    </nav>
+
+</body>
+</html>

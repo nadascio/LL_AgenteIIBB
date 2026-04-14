@@ -144,10 +144,13 @@ class RAGEngine:
         if self.provincia == "bsas":
             from normativas.bsas.loader import NormativaLoader
             return NormativaLoader(use_fixtures=agent_cfg.use_fixtures)
+        elif self.provincia == "caba":
+            from normativas.caba.loader import NormativaLoader
+            return NormativaLoader()
         else:
             raise NotImplementedError(
                 f"Provincia '{self.provincia}' no soportada aún. "
-                f"Hito 2+ cubrirá más jurisdicciones."
+                f"Jurisdicciones disponibles: 'bsas', 'caba'."
             )
 
     def search(

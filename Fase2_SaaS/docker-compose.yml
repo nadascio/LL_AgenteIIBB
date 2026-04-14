@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ll_tax_audit_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-ll_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ll_pass2026}
+      POSTGRES_DB: ${DB_NAME:-ll_tax_audit}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: 
+      context: .
+      dockerfile: ./backend/Dockerfile
+    container_name: ll_tax_audit_backend
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-ll_admin}:${DB_PASSWORD:-ll_pass2026}@db/${DB_NAME:-ll_tax_audit}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

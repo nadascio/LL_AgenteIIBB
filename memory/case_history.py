@@ -142,7 +142,8 @@ class CaseHistory:
             if naes_code:
                 stmt = stmt.where(CaseModel.naes_code == naes_code)
             
-            stmt = stmt.order_by(desc(CaseModel.timestamp)).limit(max_results)
+            # Validados por experto primero, luego por fecha descendente
+            stmt = stmt.order_by(desc(CaseModel.expert_validated), desc(CaseModel.timestamp)).limit(max_results)
             results = session.execute(stmt).scalars().all()
             
             # Convertir a dict para compatibilidad con el resto del sistema

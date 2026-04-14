@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Hoja de Ruta: Diseño y Transición</title>
+    <style>
+        :root {
+            --primary: #001e40;
+            --accent: #00f2ff;
+            --glass: rgba(255, 255, 255, 0.9);
+            --bg: #f0f4f8;
+            --text: #1e293b;
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 50px;
+            color: var(--text);
+        }
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 60px;
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+        h1 { font-size: 3rem; color: var(--primary); margin-bottom: 10px; }
+        .badge {
+            background: var(--primary);
+            color: var(--accent);
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        /* Timeline Visual */
+        .timeline {
+            position: relative;
+            margin: 80px 0;
+            padding: 0;
+            list-style: none;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            width: 4px;
+            height: 100%;
+            background: #cbd5e1;
+            transform: translateX(-50%);
+        }
+        .timeline-item {
+            margin-bottom: 60px;
+            width: 45%;
+            position: relative;
+        }
+        .timeline-item:nth-child(even) { margin-left: 55%; }
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: -12.5%;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border: 4px solid var(--accent);
+            border-radius: 50%;
+            z-index: 1;
+        }
+        .timeline-item:nth-child(even)::after { left: -12.5%; }
+        
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card h3 { color: var(--primary); margin-top: 0; }
+        
+        /* Table styles */
+        .replace-table {
+            width: 100%;
+            margin-top: 50px;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .replace-table th { background: var(--primary); color: white; padding: 20px; }
+        .replace-table td { padding: 20px; background: #fff; border-bottom: 1px solid #eee; }
+        .old { color: #f43f5e; font-weight: bold; }
+        .new { color: #10b981; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span class="badge">Estrategia 2026</span>
+            <h1>Hoja de Ruta: Evolución Web</h1>
+            <p>De un prototipo Streamlit a una Plataforma SaaS de Alto Rendimiento</p>
+        </div>
+
+        <h2>🏗️ Proceso de Reemplazo: Paso a Paso</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="card">
+                    <h3>Fase 1: Coexistencia Silenciosa</h3>
+                    <p>Mientras usás el portal actual para trabajar, nosotros construimos la "página web" (Next.js) y la API en una carpeta separada. No hay riesgo de rotura.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="card">
+                    <h3>Fase 2: El "Puente" Docker</h3>
+                    <p>Conectamos tu lógica actual (el Agente y RAG) a la nueva API dentro de contenedores Docker. El sistema ya puede trabajar en el fondo.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="card">
+                    <h3>Fase 3: El Gran Switch</h3>
+                    <p>Apagamos Streamlit y encendemos la nueva web premium vinculada a la base de datos PostgreSQL. Migramos tu historial automáticamente.</p>
+                </div>
+            </div>
+        </div>
+
+        <h2>🔄 ¿Qué piezas reemplazamos y por qué?</h2>
+        <table class="replace-table">
+            <thead>
+                <tr>
+                    <th>Componente Actual</th>
+                    <th>Pieza Nueva (Fase 2)</th>
+                    <th>Mejora Clave</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="old">Streamlit UI</td>
+                    <td class="new">Next.js + Tailwind</td>
+                    <td>Estética premium, animaciones y control absoluto del diseño.</td>
+                </tr>
+                <tr>
+                    <td class="old">Procesamiento Bloqueante</td>
+                    <td class="new">Celery + Redis workers</td>
+                    <td>Podés cerrar la web; la auditoría sigue corriendo sola por detrás.</td>
+                </tr>
+                <tr>
+                    <td class="old">Base SQLite</td>
+                    <td class="new">PostgreSQL (Docker)</td>
+                    <td>Soporta múltiples usuarios y auditorías masivas sin errores.</td>
+                </tr>
+                <tr>
+                    <td class="old">st.file_uploader</td>
+                    <td class="new">Drag & Drop Custom</td>
+                    <td>Validación instantánea y feedback visual de carga.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="background: var(--primary); color: white; padding: 40px; border-radius: 16px; margin-top: 60px;">
+            <h3 style="margin-top:0; color: var(--accent);">📊 ¿Podemos diseñar el Dashboard hoy mismo?</h3>
+            <p><b>Sí.</b> El diseño de la interfaz en Next.js es independiente del backend. Podemos empezar a maquetar el Dashboard con "datos ficticios" para que veas cómo va a quedar, y luego le "enchufamos" el motor del Agente que ya tenemos funcionando.</p>
+            <p>Esto nos permite iterar la belleza visual del sitio sin tocar el código fiscal que tanto nos costó estabilizar.</p>
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; color: #94a3b8;">
+            Preparado para LL Digital - Roadmap de Transición v1.0
+        </p>
+    </div>
+</body>
+</html>

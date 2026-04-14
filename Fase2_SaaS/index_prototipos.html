@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lisicki Litvin - Índice de Prototipos Fase 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #001b3d; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card-ll { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 60px; max-width: 800px; width: 100%; box-shadow: 0 40px 100px rgba(0,0,0,0.5); }
+        .step-link { display: flex; align-items: center; justify-content: space-between; padding: 25px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 15px; transition: all 0.3s; border: 1px solid transparent; }
+        .step-link:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); transform: translateX(10px); }
+        .badge { background: #00bcd4; color: #001b3d; font-size: 0.6rem; font-weight: 800; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; margin-bottom: 8px; display: inline-block; }
+    </style>
+</head>
+<body>
+
+    <div class="card-ll">
+        <div class="text-center mb-16">
+            <div class="w-16 h-16 bg-white rounded-xl mx-auto flex items-center justify-center mb-8">
+                <span class="text-ll-navy font-bold text-3xl">LL</span>
+            </div>
+            <h1 class="text-4xl font-bold tracking-tight mb-4">Suite de Prototipos V2</h1>
+            <p class="text-slate-400 text-lg">Haga clic en cada paso para ver la interfaz funcional.</p>
+        </div>
+
+        <div class="space-y-4">
+            <!-- STEP 01 -->
+            <a href="propuesta_visual_stitch.html" target="_blank" class="step-link">
+                <div>
+                    <span class="badge">Paso 01</span>
+                    <h3 class="text-xl font-bold">Agente Senior (Home/Landing)</h3>
+                    <p class="text-sm text-slate-500">Presentación institucional y entrada al agente.</p>
+                </div>
+                <span class="text-2xl">➔</span>
+            </a>
+
+            <!-- STEP 02 -->
+            <a href="prototipo_onboarding_senior.html" target="_blank" class="step-link">
+                <div>
+                    <span class="badge">Paso 02</span>
+                    <h3 class="text-xl font-bold">Registro & Onboarding</h3>
+                    <p class="text-sm text-slate-500">Wizard profesional para creación de cuenta y empresa.</p>
+                </div>
+                <span class="text-2xl">➔</span>
+            </a>
+
+            <!-- STEP 03 -->
+            <a href="prototipo_dashboard_carga.html" target="_blank" class="step-link">
+                <div>
+                    <span class="badge">Paso 03</span>
+                    <h3 class="text-xl font-bold">Carga Masiva de Datos</h3>
+                    <p class="text-sm text-slate-500">Interfaz operativa para importar comprobantes.</p>
+                </div>
+                <span class="text-2xl">➔</span>
+            </a>
+
+            <!-- STEP 04 -->
+            <a href="prototipo_ho_ja_ejemplo.html" target="_blank" class="step-link">
+                <div>
+                    <span class="badge">Paso 04</span>
+                    <h3 class="text-xl font-bold">Hoja de Ejemplo (Review AI)</h3>
+                    <p class="text-sm text-slate-500">Resultados, dictamen automático e historial.</p>
+                </div>
+                <span class="text-2xl">➔</span>
+            </a>
+        </div>
+
+        <div class="mt-16 pt-10 border-t border-white/10 text-center">
+            <p class="text-[10px] uppercase tracking-[0.3em] text-white/20">Lisicki Litvin Senior Framework 2026</p>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -59,14 +59,33 @@ class AgentOutput(BaseModel):
     caso_id: str
     output_texto: str
 
+# Mapeo de nombre de jurisdicción (usado en AgentInput.provincia_id) → clave RAG
+_PROVINCIA_TO_RAG_KEY: dict[str, str] = {
+    "caba": "caba",
+    "capital federal": "caba",
+    "buenos aires": "bsas",
+    "bsas": "bsas",
+    "prov. buenos aires": "bsas",
+}
+
+def _resolve_rag_key(provincia_id: str) -> str:
+    """Convierte el nombre de provincia del input a la clave del loader RAG."""
+    key = _PROVINCIA_TO_RAG_KEY.get(provincia_id.lower().strip())
+    if key:
+        return key
+    # Fallback a la provincia activa configurada
+    return agent_cfg.provincia_activa
+
+
 class IIBBAgent:
     """
     Agente principal de Ingresos Brutos.
     Orquesta la auditoría de múltiples actividades simultáneas.
+    Soporta múltiples jurisdicciones (BSAS, CABA) con RAG independiente por provincia.
     """
 
     def __init__(self):
-        self.rag = RAGEngine(provincia=agent_cfg.provincia_activa)
+        self._rag_cache: dict[str, RAGEngine] = {}   # cache de engines por provincia
         self.calculator = TaxCalculator(
             provincia=agent_cfg.provincia_activa,
             use_fixtures=agent_cfg.use_fixtures
@@ -74,6 +93,20 @@ class IIBBAgent:
         self.history = CaseHistory()
         self._llm = None
         self._initialized = False
+
+    @property
+    def rag(self) -> RAGEngine:
+        """RAGEngine para la provincia activa por defecto (retrocompatibilidad)."""
+        return self._get_rag(agent_cfg.provincia_activa)
+
+    def _get_rag(self, rag_key: str) -> RAGEngine:
+        """Retorna (creando si es necesario) el RAGEngine para la jurisdicción dada."""
+        if rag_key not in self._rag_cache:
+            engine = RAGEngine(provincia=rag_key)
+            if self._initialized:
+                engine.initialize(force_reindex=False)
+            self._rag_cache[rag_key] = engine
+        return self._rag_cache[rag_key]
 
     def _build_llm(self):
         """Factory de LLM segun el backend configurado en .env."""
@@ -115,7 +148,8 @@ class IIBBAgent:
     def initialize(self, force_reindex: bool = False) -> None:
         if self._initialized:
             return
-        self.rag.initialize(force_reindex=force_reindex)
+        # Inicializar el RAG de la provincia activa por defecto
+        self._get_rag(agent_cfg.provincia_activa).initialize(force_reindex=force_reindex)
         self._llm = self._build_llm()
         self._initialized = True
 
@@ -136,13 +170,20 @@ class IIBBAgent:
         backend = _cfg.backend.lower()
         model_name = getattr(_cfg, f"{backend}_model", "desconocido")
 
+        # Resolver el RAG correcto para la jurisdicción del input
+        rag_key = _resolve_rag_key(inputs.provincia_id)
+        rag = self._get_rag(rag_key)
+        if not rag._initialized:
+            console.print(f"[yellow]RAG: Inicializando índice para jurisdicción '{rag_key}'...[/yellow]")
+            rag.initialize(force_reindex=False)
+
         resultados_calc = []
         contextos_legales = []
-        
+
         # PASO 1: Procesar cada actividad individualmente
         for i, act in enumerate(inputs.actividades):
             console.print(f"[bold blue]PASO {i+1}: Analizando '{act.desc[:30]}...'[/bold blue]")
-            
+
             # Recuperar normativa vía RAG — combina NAES + descripción ARCA + descripción real
             rag_parts = []
             if act.naes:
@@ -152,7 +193,7 @@ class IIBBAgent:
             if act.desc_real and act.desc_real != act.desc:
                 rag_parts.append(act.desc_real)
             rag_query = " ".join(rag_parts) if rag_parts else "alicuota actividad"
-            contexto = self.rag.search_as_context(rag_query)
+            contexto = rag.search_as_context(rag_query)
             contextos_legales.append(contexto)
             
             # Calcular alícuota técnica (Validador estructural)
@@ -315,7 +356,7 @@ class IIBBAgent:
         # PASO 5: Auditoría Interanual
         auditoria_res = None
         if inputs.alicuota_periodo_anterior is not None and resultados_calc:
-            auditor = AuditModule(rag_engine=self.rag)
+            auditor = AuditModule(rag_engine=rag)
             auditoria_res = auditor.analizar(
                 alicuota_actual=resultados_calc[0].alicuota_final,
                 alicuota_anterior=inputs.alicuota_periodo_anterior,

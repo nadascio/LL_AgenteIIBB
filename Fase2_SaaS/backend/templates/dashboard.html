@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lisicki Litvin - Carga de Datos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #fcfdfe; color: #001b3d; }
+        .bg-ll-navy { background-color: #001b3d; }
+        [x-cloak] { display: none !important; }
+        .table-ll { width: 100%; border-collapse: separate; border-spacing: 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,27,61,0.03); }
+        .table-ll th { background: #f8fafc; text-align: left; padding: 16px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; border-bottom: 1px solid #f1f5f9; }
+        .table-ll td { padding: 16px; font-size: 0.9rem; border-bottom: 1px solid #f8fafc; color: #1e293b; }
+        .btn-action { background: #f1f5f9; color: #001b3d; padding: 10px 16px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.2s; cursor: pointer; border: none; }
+        .btn-action:hover { background: #e2e8f0; }
+        .btn-primary { background: #001b3d; color: white; }
+        .btn-primary:hover { background: #002d66; }
+        .tab-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; padding: 15px 0; z-index: 100; }
+        .tab-item { text-align: center; color: #94a3b8; font-size: 0.7rem; font-weight: 600; }
+        .tab-item.active { color: #001b3d; }
+    </style>
+</head>
+<body class="pb-32" x-data="auditDashboard()">
+
+    <header class="bg-white py-6 px-10 flex justify-between items-center border-b border-slate-100">
+        <div class="flex items-center">
+            <div class="w-8 h-8 bg-ll-navy rounded flex items-center justify-center mr-3 text-white font-bold">L</div>
+            <h1 class="text-xl font-semibold tracking-tight uppercase">Lisicki Litvin</h1>
+        </div>
+        <div class="flex gap-4">
+             <button class="btn-action"><span class="text-lg">⚙️</span> Configuración</button>
+             <div class="w-10 h-10 rounded-full bg-slate-200 border-2 border-white shadow-sm overflow-hidden">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nahuel" alt="User">
+             </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-10 pt-16">
+        
+        <div class="flex justify-between items-end mb-12">
+            <div>
+                <h2 class="text-4xl font-bold mb-3 text-ll-navy">Carga Masiva<br>de Comprobantes</h2>
+                <p class="text-slate-500 font-medium tracking-tight">Sistema de Auditoría Inteligente v2.0</p>
+            </div>
+            <div class="flex gap-4">
+                <!-- FILE INPUT HIDDEN -->
+                <input type="file" id="fileInput" class="hidden" @change="handleFileUpload($event)" accept=".xlsx, .xls">
+                
+                <button class="btn-action bg-slate-100 uppercase text-[10px] py-4 px-6" @click="document.getElementById('fileInput').click()" :disabled="loading">
+                    <span class="text-lg" x-show="!loading">📁</span>
+                    <span class="animate-spin mr-2" x-show="loading">🌀</span>
+                    <span x-text="loading ? 'Procesando...' : 'Importar Excel'"></span>
+                </button>
+                <button class="btn-action btn-primary uppercase text-[10px] py-4 px-6 shadow-lg shadow-ll-navy/20" @click="saveAudit()" :disabled="!auditData.results.length">
+                    <span class="text-lg">💾</span> Guardar Carga
+                </button>
+            </div>
+        </div>
+
+        <!-- NOTIFICATION -->
+        <div x-show="message" x-transition class="mb-6 p-4 rounded-md bg-blue-50 text-blue-700 text-sm font-bold flex justify-between items-center">
+            <span x-text="message"></span>
+            <button @click="message = ''">✕</button>
+        </div>
+
+        <!-- SEARCH AND TOOLS -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="relative w-96">
+                <span class="absolute left-4 top-3 text-slate-400">🔍</span>
+                <input type="text" x-model="searchQuery" placeholder="Filtrar por CUIT, Periodo o Provincia..." class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-md text-sm focus:outline-none focus:border-ll-navy">
+            </div>
+            <button class="text-[#001b3d] font-bold text-xs uppercase flex items-center gap-2 hover:underline">
+                <span class="text-lg">⊕</span> Nueva Fila
+            </button>
+        </div>
+
+        <!-- THE TABLE -->
+        <table class="table-ll">
+            <thead>
+                <tr>
+                    <th class="w-16">#</th>
+                    <th>CUIT</th>
+                    <th>Jurisdicción</th>
+                    <th>Base Imponible</th>
+                    <th>Alícuota (Dictamen)</th>
+                    <th>Impuesto</th>
+                    <th class="w-20"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <template x-for="(row, index) in filteredResults" :key="index">
+                    <tr class="hover:bg-slate-50">
+                        <td class="text-slate-400 font-bold" x-text="index + 1"></td>
+                        <td class="font-bold" x-text="row.CUIT"></td>
+                        <td><span class="bg-blue-50 px-2 py-1 rounded text-blue-700 text-[10px] font-bold uppercase" x-text="row.PROVINCIA"></span></td>
+                        <td x-text="'$ ' + row.NETO_GRAVADO.toLocaleString()"></td>
+                        <td><span class="font-bold" x-text="(row.ALICUOTA_DICTAMEN * 100).toFixed(2) + '%'"></span></td>
+                        <td class="font-bold" x-text="'$ ' + (row.IMPUESTO_CALCULADO).toLocaleString()"></td>
+                        <td class="text-right"><button class="text-slate-300 hover:text-red-500">🗑️</button></td>
+                    </tr>
+                </template>
+                <tr x-show="!auditData.results.length">
+                    <td colspan="7" class="text-center py-20 text-slate-400 italic">No hay datos cargados. Suba un archivo Excel para comenzar.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- STATUS BAR -->
+        <div class="mt-10 flex gap-12 text-center border-t border-slate-100 pt-10">
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Total Filas</p>
+                <p class="text-xl font-bold text-ll-navy" x-text="auditData.results.length"></p>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Carga Actual</p>
+                <p class="text-xl font-bold text-cyan-500" x-text="auditData.filename || '-'"></p>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Motor de Reglas</p>
+                <p class="text-xl font-bold text-cyan-500">ONLINE</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- BOTTOM TAB NAVIGATION -->
+    <nav class="tab-nav">
+        <a href="/" class="tab-item">
+            <div class="text-xl mb-1">📖</div>
+            <div>Inicio</div>
+        </a>
+        <a href="/dashboard" class="tab-item active">
+            <div class="text-xl mb-1">📤</div>
+            <div>Carga</div>
+        </a>
+        <a href="/report" class="tab-item">
+            <div class="text-xl mb-1">📋</div>
+            <div>Resultados</div>
+        </a>
+    </nav>
+
+    <script>
+        function auditDashboard() {
+            return {
+                loading: false,
+                message: '',
+                searchQuery: '',
+                auditData: {
+                    filename: '',
+                    results: [],
+                    ai_summary: ''
+                },
+                get filteredResults() {
+                    if (!this.searchQuery) return this.auditData.results;
+                    return this.auditData.results.filter(row => 
+                        Object.values(row).some(val => 
+                            String(val).toLowerCase().includes(this.searchQuery.toLowerCase())
+                        )
+                    );
+                },
+                async handleFileUpload(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    this.loading = true;
+                    this.message = 'Analizando archivo con IA y motor de reglas...';
+
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    try {
+                        const response = await fetch('/api/audit/upload', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (!response.ok) throw new Error('Error en el servidor');
+
+                        const data = await response.json();
+                        this.auditData = data;
+                        this.message = '¡Auditoría completada con éxito!';
+                        
+                        // Guardar en localStorage para que el /report lo pueda leer
+                        localStorage.setItem('lastAuditResults', JSON.stringify(data));
+                        
+                    } catch (error) {
+                        this.message = 'Error: ' + error.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                saveAudit() {
+                    window.location.href = '/report';
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>

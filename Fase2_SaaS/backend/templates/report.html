@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lisicki Litvin - Hoja de Auditoría Dinámica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; color: #001b3d; }
+        .bg-ll-navy { background-color: #001b3d; }
+        [x-cloak] { display: none !important; }
+        .sidebar-ll { width: 260px; height: 100vh; position: fixed; left: 0; top: 0; background: #001b3d; color: white; padding: 30px 20px; z-index: 50; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; transition: all 0.2s; text-decoration: none; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.05); color: white; }
+        .main-container { margin-left: 260px; padding: 40px 60px; }
+        .card-premium { background: white; border-radius: 12px; padding: 32px; border: 1px solid #edf2f7; box-shadow: 0 10px 30px rgba(0,27,61,0.02); }
+        .table-premium { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .table-premium th { text-align: left; padding: 16px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #f1f5f9; }
+        .table-premium td { padding: 20px 16px; font-size: 0.85rem; border-bottom: 1px solid #f8fafc; }
+        .badge-status { padding: 4px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    </style>
+</head>
+<body x-data="auditReport()" x-init="loadResults()">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar-ll">
+        <div class="flex items-center gap-3 mb-12 px-4">
+            <div class="w-10 h-10 bg-white rounded flex items-center justify-center">
+                <span class="text-[#001b3d] font-bold text-xl">LL</span>
+            </div>
+            <div>
+                <p class="text-[10px] uppercase tracking-widest font-bold text-white/40">Fiscal Control</p>
+                <p class="text-[9px] text-white/30 lowercase">Professional Suite</p>
+            </div>
+        </div>
+
+        <nav class="space-y-2">
+            <a href="/" class="nav-link"><span class="material-symbols-outlined text-xl">grid_view</span> Dashboard</a>
+            <a href="/dashboard" class="nav-link"><span class="material-symbols-outlined text-xl">fact_check</span> Auditoría</a>
+            <a href="/report" class="nav-link active"><span class="material-symbols-outlined text-xl">analytics</span> Reportes</a>
+        </nav>
+
+        <div class="absolute bottom-8 left-0 right-0 px-8">
+             <a href="/dashboard" class="block w-full text-center bg-white text-[#001b3d] py-3 rounded font-bold text-xs uppercase tracking-widest hover:bg-slate-100 transition-all text-decoration-none">Nueva Auditoría</a>
+        </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="main-container">
+        
+        <!-- HEADER -->
+        <header class="flex justify-between items-end mb-12">
+            <div>
+                <nav class="flex gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                    <span>Proyectos</span> / <span x-text="auditData.filename || 'Simulación'"></span> / <span class="text-[#001b3d]">Dictamen AI</span>
+                </nav>
+                <h1 class="text-3xl font-bold text-[#001b3d]">Reporte de Auditoría Senior</h1>
+                <p class="text-slate-500 text-sm mt-1">Análisis multijurisdiccional generado automáticamente por el Agente LL.</p>
+            </div>
+            <div class="flex gap-4">
+                <button class="px-6 py-3 bg-slate-200 text-[#001b3d] text-[10px] font-bold uppercase rounded tracking-widest hover:bg-slate-300">Descargar PDF</button>
+                <button class="px-6 py-3 bg-[#001b3d] text-white text-[10px] font-bold uppercase rounded tracking-widest shadow-lg shadow-[#001b3d]/20 hover:bg-slate-800">Cerrar Auditoría</button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-12 gap-8 items-start">
+            
+            <!-- LEFT: CLIENT INFO -->
+            <div class="col-span-12 lg:col-span-4 space-y-8">
+                <div class="card-premium">
+                    <div class="flex justify-between items-center mb-10">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Ficha del Contribuyente</span>
+                        <span class="badge-status bg-blue-100 text-blue-700">Analizado</span>
+                    </div>
+                    
+                    <div class="space-y-8">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">CUIT Contribuyente</label>
+                            <p class="text-2xl font-bold text-[#001b3d] tracking-tight" x-text="clientInfo.cuit"></p>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Período Fiscal</label>
+                            <p class="text-2xl font-bold text-[#001b3d] tracking-tight" x-text="clientInfo.periodo"></p>
+                        </div>
+                        <div class="pt-6 border-t border-slate-100">
+                             <label class="block text-[10px] font-bold text-slate-400 uppercase mb-3">Nivel de Riesgo AI</label>
+                             <div class="flex items-center gap-4">
+                                 <div class="h-2 flex-1 bg-slate-100 rounded-full overflow-hidden">
+                                     <div class="h-full bg-green-500" :style="'width: ' + clientInfo.riskLevel + '%'"></div>
+                                 </div>
+                                 <span class="text-[10px] font-extrabold text-green-600 uppercase" x-text="clientInfo.riskLabel"></span>
+                             </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-10 p-5 bg-slate-50 rounded-lg border-l-4 border-[#001b3d]">
+                         <p class="text-[9px] font-extrabold text-[#001b3d] uppercase tracking-widest mb-2">Conclusión Automática</p>
+                         <p class="text-xs text-slate-500 leading-relaxed italic" x-text="auditData.ai_summary || 'No hay datos de resumen disponibles.'"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: MAIN DATA TABLE -->
+            <div class="col-span-12 lg:col-span-8">
+                <div class="card-premium p-0 overflow-hidden">
+                    <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+                         <h3 class="font-bold text-[#001b3d] text-lg">Inconsistencias y Alícuotas</h3>
+                         <button class="text-slate-400 hover:text-[#001b3d]"><span class="material-symbols-outlined">filter_list</span></button>
+                    </div>
+                    <table class="table-premium">
+                        <thead>
+                            <tr>
+                                <th>Provincia</th>
+                                <th class="text-center">Código</th>
+                                <th class="text-right">Neto Gravado</th>
+                                <th class="px-8">Dictamen LL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="(row, index) in auditData.results" :key="index">
+                                <tr class="hover:bg-slate-50 transition-all">
+                                    <td>
+                                        <p class="font-bold text-[#001b3d]" x-text="row.PROVINCIA"></p>
+                                        <p class="text-[10px] text-slate-400 uppercase font-medium" x-text="row.CONCEPTO || 'Actividad General'"></p>
+                                    </td>
+                                    <td class="text-center">
+                                        <code class="bg-slate-100 text-[#001b3d] px-2 py-1 rounded text-[10px] font-bold" x-text="row.NAES || '0000'"></code>
+                                    </td>
+                                    <td class="text-right font-bold text-slate-600" x-text="'$ ' + row.NETO_GRAVADO.toLocaleString()"></td>
+                                    <td class="px-8">
+                                        <div class="flex items-center gap-2" :class="row.ALICUOTA_DICTAMEN > 0.03 ? 'text-orange-400' : 'text-cyan-500'">
+                                            <span class="material-symbols-outlined text-sm">info</span>
+                                            <span class="text-[10px] italic font-bold" x-text="(row.ALICUOTA_DICTAMEN * 100).toFixed(2) + '% Aplicada'"></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr x-show="!auditData.results.length">
+                                <td colspan="4" class="text-center py-20 text-slate-400 italic">No hay resultados que mostrar.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- SUB-CARDS -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                    <div class="bg-[#001b3d] rounded-xl p-8 text-white relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-8 opacity-10 transform translate-x-4 -translate-y-4">
+                             <span class="material-symbols-outlined text-8xl">verified_user</span>
+                        </div>
+                        <h4 class="font-bold text-xl mb-3">Compliance Ready</h4>
+                        <p class="text-xs text-white/60 leading-relaxed mb-6">Los cálculos han sido validados contra el RAG de normativas provinciales actualizado.</p>
+                        <div class="flex gap-2">
+                             <span class="bg-white/10 px-3 py-1 rounded text-[9px] font-bold uppercase tracking-widest">Validación Alta</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-premium">
+                         <div class="flex items-center gap-3 mb-6">
+                             <span class="material-symbols-outlined text-[#001b3d]">history_edu</span>
+                             <h4 class="font-bold text-[#001b3d]">Ajustes Sugeridos</h4>
+                         </div>
+                         <ul class="space-y-4">
+                             <template x-for="item in suggetions" :key="item.id">
+                                <li class="flex justify-between text-xs font-medium">
+                                    <span class="text-slate-400 uppercase tracking-tighter" x-text="item.label"></span>
+                                    <span class="font-bold" :class="item.type === 'plus' ? 'text-green-600' : 'text-red-500'" x-text="item.value"></span>
+                                </li>
+                             </template>
+                         </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        function auditReport() {
+            return {
+                auditData: {
+                    filename: '',
+                    results: [],
+                    ai_summary: ''
+                },
+                clientInfo: {
+                    cuit: '-',
+                    periodo: '-',
+                    riskLevel: 0,
+                    riskLabel: 'PENDIENTE'
+                },
+                suggetions: [
+                    { id: 1, label: 'Ajuste Coeficiente Unificado', value: '+1.2%', type: 'plus' },
+                    { id: 2, label: 'Deducción Retenciones Sircreb', value: '-$24.500', type: 'minus' }
+                ],
+                loadResults() {
+                    const raw = localStorage.getItem('lastAuditResults');
+                    if (!raw) return;
+
+                    const data = JSON.parse(raw);
+                    this.auditData = data;
+
+                    if (data.results.length > 0) {
+                        const first = data.results[0];
+                        this.clientInfo.cuit = first.CUIT || '30-XXXXXXXX-X';
+                        this.clientInfo.periodo = first.PERIODO || '2026';
+                        this.clientInfo.riskLevel = 15; // Placeholder logic
+                        this.clientInfo.riskLabel = 'BAJO';
+                    }
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -4,7 +4,7 @@ import os
 import logging
 from datetime import datetime
 import base64
-from core.database import SessionLocal, Auditoria, ResultadoActividad, ArchivoGenerado, init_db
+from core.database import SessionLocal, Auditoria, ResultadoActividad, ArchivoGenerado, ActivityLog, init_db, log_actividad
 from core.processor import AuditorProcessor
 from sqlalchemy.orm import Session
 import time
@@ -191,13 +191,24 @@ def view_carga_datos():
                     with st.spinner("🤖 El Agente está analizando las normativas jurisdiccionales..."):
                         db = SessionLocal()
                         try:
+                            cuits_archivo = df["Cuit"].astype(str).unique().tolist()
+                            periodos_archivo = df["Periodo"].astype(str).unique().tolist()
+                            log_actividad(db, "CONSULTA_INICIADA",
+                                detalle=f"Archivo: {uploaded_file.name} | "
+                                        f"CUITs: {', '.join(cuits_archivo)} | "
+                                        f"Períodos: {', '.join(periodos_archivo)} | "
+                                        f"Registros: {len(df)}")
                             processor = AuditorProcessor(db=db)
                             processor.process_dataframe(df)
                             db.commit()
+                            log_actividad(db, "CONSULTA_COMPLETADA",
+                                detalle=f"Archivo: {uploaded_file.name} | {len(df)} registro(s) procesado(s)")
                             st.balloons()
                             st.session_state.auditoria_completada = True
                         except Exception as e:
                             db.rollback()
+                            log_actividad(db, "CONSULTA_ERROR",
+                                detalle=f"Archivo: {uploaded_file.name} | Error: {str(e)[:200]}")
                             st.error(f"❌ Error durante la auditoría: {e}")
                             st.session_state.auditoria_completada = False
                         finally:
@@ -214,51 +225,332 @@ def view_carga_datos():
         except Exception as e:
             st.error(f"Error al leer el archivo: {e}")
 
-def _render_audit_detail(audit, db):
-    """Renderiza el detalle completo de una auditoría individual."""
+def _render_validacion(juris_code, all_items, db):
+    """Formulario de validación humana para todas las actividades de una jurisdicción."""
+    from datetime import datetime as _dt
+    from memory.case_history import CaseHistory
+
+    if not all_items:
+        return
+
+    # Estado actual de validación
+    val_estados = [getattr(i["resultado"], "validacion_estado", "PENDIENTE") for i in all_items]
+    todas_validadas = all(e in {"ACEPTADO", "MODIFICADO"} for e in val_estados)
+
+    with st.expander("📝 Validación de Criterios" + (" — ✅ Completada" if todas_validadas else " — ⏳ Pendiente"), expanded=not todas_validadas):
+
+        if todas_validadas:
+            st.success("Esta jurisdicción ya fue validada. Podés revisar o corregir las decisiones tomadas.")
+            # Mostrar resumen de lo validado
+            for i in all_items:
+                r = i["resultado"]
+                est = getattr(r, "validacion_estado", "—")
+                ali_v = getattr(r, "alicuota_validada", None)
+                com_v = getattr(r, "comentario_validacion", "") or ""
+                fecha_v = getattr(r, "fecha_validacion", None)
+                validado_por = getattr(r, "validado_por", None) or "—"
+                equipo = getattr(r, "equipo_validacion", None) or "—"
+                icon = "✅" if est == "ACEPTADO" else "⚠️"
+                fecha_str = fecha_v.strftime("%d/%m/%Y %H:%M") if fecha_v else "—"
+                st.markdown(
+                    f'{icon} **{r.actividad_desc or r.naes}** — '
+                    f'Alíc. validada: **{ali_v:.2f}%**'
+                )
+                st.caption(
+                    f"👤 {validado_por} · 🏢 {equipo} · 📅 {fecha_str}"
+                    + (f"\n💬 {com_v}" if com_v else "")
+                )
+            st.divider()
+            if not st.checkbox("🔄 Modificar validación", key=f"reabrir_val_{juris_code}"):
+                return
+
+        st.caption("Revisá el dictamen de la IA y confirmá o modificá la alícuota para cada actividad. "
+                   "El comentario es **obligatorio** cuando se modifica el criterio.")
+
+        with st.form(key=f"form_val_{juris_code}"):
+            decisiones = []
+
+            for idx, i in enumerate(all_items):
+                r = i["resultado"]
+                audit = i["audit"]
+                alicuota_ia = r.alicuota_ia or r.alicuota_sugerida or 0.0
+                ant = getattr(r, "alicuota_anterior", None)
+                ant_str = f" | Anterior: {ant:.2f}%" if ant else ""
+                val_prev = getattr(r, "validacion_estado", "PENDIENTE")
+                ali_val_prev = getattr(r, "alicuota_validada", None) or alicuota_ia
+                com_prev = getattr(r, "comentario_validacion", "") or ""
+
+                st.markdown(f"**Actividad {idx + 1}:** {r.actividad_desc or r.naes or '—'}")
+                st.caption(f"Alíc. IA: **{alicuota_ia:.2f}%**{ant_str} | {r.normativa_ref or '—'}")
+
+                col_radio, col_num = st.columns([2, 1])
+                with col_radio:
+                    default_idx = 1 if val_prev == "MODIFICADO" else 0
+                    accion = st.radio(
+                        "Decisión:",
+                        ["✅ Acepto el criterio IA", "📝 Modifico la alícuota"],
+                        index=default_idx,
+                        key=f"val_radio_{r.id}",
+                        horizontal=True,
+                    )
+                with col_num:
+                    # Nota: dentro de st.form el `disabled` no reacciona al radio —
+                    # siempre habilitamos el campo; la lógica de cuál valor usar
+                    # se resuelve en el submit según la opción del radio.
+                    nueva_alicuota = st.number_input(
+                        "Nueva alícuota (%):",
+                        min_value=0.0, max_value=100.0,
+                        value=float(ali_val_prev),
+                        step=0.01,
+                        format="%.2f",
+                        key=f"val_num_{r.id}",
+                    )
+
+                comentario = st.text_area(
+                    "Comentario (obligatorio si modificás la alícuota):",
+                    value=com_prev,
+                    placeholder="Ej: Se aplica tasa reducida por Decreto 123/26 — el tramo de volumen "
+                                "cambia respecto a lo determinado por la IA...",
+                    key=f"val_com_{r.id}",
+                    height=80,
+                )
+
+                decisiones.append({
+                    "resultado": r,
+                    "audit": audit,
+                    "alicuota_ia": alicuota_ia,
+                    "accion": accion,
+                    "nueva_alicuota": nueva_alicuota,
+                    "comentario": comentario,
+                })
+
+                if idx < len(all_items) - 1:
+                    st.divider()
+
+            submitted = st.form_submit_button(
+                "✅ Confirmar validación de esta jurisdicción",
+                use_container_width=True,
+                type="primary",
+            )
+
+            if submitted:
+                # Validar: comentario obligatorio si modifica
+                errores = []
+                for d in decisiones:
+                    if d["accion"] == "📝 Modifico la alícuota" and not d["comentario"].strip():
+                        errores.append(f"• **{d['resultado'].actividad_desc or d['resultado'].naes}**: el comentario es obligatorio al modificar.")
+
+                if errores:
+                    st.error("Corregí los siguientes errores antes de confirmar:\n\n" + "\n".join(errores))
+                else:
+                    # Identidad del validador — en el futuro vendrá del sistema de usuarios
+                    USUARIO_ACTUAL = "Especialista"
+                    EQUIPO_ACTUAL  = "Lisicki Litvin"
+
+                    case_history = CaseHistory()
+                    for d in decisiones:
+                        r = d["resultado"]
+                        acepta = d["accion"] == "✅ Acepto el criterio IA"
+                        ali_final = d["alicuota_ia"] if acepta else d["nueva_alicuota"]
+                        com_final = d["comentario"].strip() or ("Criterio IA aceptado sin modificaciones." if acepta else "")
+
+                        r.validacion_estado   = "ACEPTADO" if acepta else "MODIFICADO"
+                        r.alicuota_validada   = ali_final
+                        r.comentario_validacion = com_final
+                        r.fecha_validacion    = _dt.now()
+                        r.validado_por        = USUARIO_ACTUAL
+                        r.equipo_validacion   = EQUIPO_ACTUAL
+
+                        # Actualizar CaseHistory — futuros análisis verán criterio validado por experto
+                        caso_id = getattr(d["audit"], "caso_id", None)
+                        if caso_id:
+                            firma = f"{USUARIO_ACTUAL} ({EQUIPO_ACTUAL})"
+                            case_history.update_validation(
+                                case_id=caso_id,
+                                expert_validated=True,
+                                expert_comments=f"[{firma}] {com_final}",
+                                final_alicuota=ali_final,
+                            )
+
+                    db.commit()
+
+                    # Log de cada decisión individual
+                    for d in decisiones:
+                        accion_log = "VALIDACION_ACEPTADA" if d["accion"] == "✅ Acepto el criterio IA" else "VALIDACION_MODIFICADA"
+                        r = d["resultado"]
+                        log_actividad(db, accion_log,
+                            usuario=USUARIO_ACTUAL, equipo=EQUIPO_ACTUAL,
+                            cuit=getattr(d["audit"], "cuit", None),
+                            periodo=getattr(d["audit"], "periodo", None),
+                            jurisdiccion_id=juris_code,
+                            auditoria_id=getattr(d["audit"], "id", None),
+                            detalle=f"NAES: {r.naes} | Alíc. IA: {d['alicuota_ia']:.2f}% → "
+                                    f"Validada: {(d['alicuota_ia'] if d['accion'] == '✅ Acepto el criterio IA' else d['nueva_alicuota']):.2f}% | "
+                                    f"{d['comentario'][:150] if d['comentario'] else ''}")
+
+                    st.success(f"✅ Validación guardada por **{USUARIO_ACTUAL}** — **{EQUIPO_ACTUAL}**. "
+                               "Los criterios quedan registrados como precedentes experto.")
+                    st.rerun()
+
+
+def _render_jurisdiccion_detail(juris_code, audits, db):
+    """Muestra todas las actividades de una jurisdicción agrupadas."""
     import re as _re
+    from core.constants import JURISDICCIONES
 
-    if audit.resumen_ia:
-        st.markdown("**🤖 Resumen IA:**")
-        resumen_limpio = _re.sub(r'#{1,4}\s*', '', audit.resumen_ia)
-        resumen_limpio = _re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', resumen_limpio)
-        resumen_limpio = _re.sub(r'\*(.*?)\*', r'<em>\1</em>', resumen_limpio)
-        resumen_limpio = resumen_limpio.replace('\n', '<br>')
-        st.markdown(
-            f"""<div style="background:#f0f4fa;border-left:4px solid #1a3a6b;border-radius:6px;
-            padding:14px 18px;max-height:200px;overflow-y:auto;font-size:0.82rem;
-            line-height:1.6;color:#222;">{resumen_limpio}</div>""",
-            unsafe_allow_html=True
-        )
-        st.markdown("")
+    nombre = JURISDICCIONES.get(juris_code, f"Jurisdicción {juris_code}")
 
-    resultados = db.query(ResultadoActividad).filter(ResultadoActividad.auditoria_id == audit.id).all()
-    if resultados:
-        st.markdown("##### 📋 Actividades Auditadas")
-        df_res = pd.DataFrame([{
-            "Actividad":          r.actividad_desc or "—",
-            "NAES":               r.naes or "—",
-            "Alíc. Base (%)":     r.alicuota_base,
-            "Alíc. Sugerida (%)": r.alicuota_sugerida,
-            "Alíc. IA (%)":       r.alicuota_ia,
-            "Normativa":          r.normativa_ref or "—",
-        } for r in resultados])
-        st.dataframe(
-            df_res, use_container_width=True,
-            column_config={
-                "Actividad": st.column_config.TextColumn("Actividad", width="large"),
-                "Normativa": st.column_config.TextColumn("Normativa", width="medium"),
-            }
-        )
-        with st.expander("📄 Ver justificaciones IA por actividad"):
-            for r in resultados:
-                st.markdown(f"**{r.actividad_desc or r.naes}**")
-                st.write(r.justificacion or "Sin justificación registrada.")
-                st.divider()
+    # Recopilar todos los resultados de todos los registros de esta jurisdicción
+    all_items = []
+    for audit in sorted(audits, key=lambda a: a.id):
+        resultados = db.query(ResultadoActividad).filter(ResultadoActividad.auditoria_id == audit.id).all()
+        for r in resultados:
+            all_items.append({"audit": audit, "resultado": r})
+
+    estados = {a.estado for a in audits}
+    color_ia = "#2e7d32" if "COMPLETADO" in estados else ("#c62828" if "ERROR" in estados else "#e65100")
+    estado_label = "COMPLETADO" if "COMPLETADO" in estados else ("ERROR" if "ERROR" in estados else "PROCESANDO")
+
+    # Badge de validación humana
+    val_estados = {getattr(i["resultado"], "validacion_estado", "PENDIENTE") for i in all_items}
+    if val_estados == {"ACEPTADO"}:
+        val_badge = '<span style="background:#1565c0;color:#fff;font-size:0.72rem;font-weight:600;padding:3px 12px;border-radius:12px;">✅ VALIDADO</span>'
+    elif "MODIFICADO" in val_estados and "PENDIENTE" not in val_estados:
+        val_badge = '<span style="background:#6a1b9a;color:#fff;font-size:0.72rem;font-weight:600;padding:3px 12px;border-radius:12px;">⚠️ REVISADO</span>'
+    elif "PENDIENTE" not in val_estados:
+        val_badge = '<span style="background:#1565c0;color:#fff;font-size:0.72rem;font-weight:600;padding:3px 12px;border-radius:12px;">✅ VALIDADO</span>'
     else:
-        st.warning("Esta auditoría no tiene actividades registradas.")
+        val_badge = '<span style="background:#78909c;color:#fff;font-size:0.72rem;font-weight:600;padding:3px 12px;border-radius:12px;">⏳ Pendiente validación</span>'
 
-    archivos = db.query(ArchivoGenerado).filter(ArchivoGenerado.auditoria_id == audit.id).all()
+    st.markdown(
+        f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">'
+        f'<span style="font-size:1.1rem;font-weight:700;color:#001e40;">📋 {juris_code} · {nombre}</span>'
+        f'<span style="background:{color_ia};color:#fff;font-size:0.72rem;font-weight:600;padding:3px 12px;border-radius:12px;">{estado_label}</span>'
+        f'{val_badge}'
+        f'<span style="color:#888;font-size:0.78rem;">{len(all_items)} actividad(es)</span>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
+
+    if not all_items:
+        st.warning("No hay actividades registradas para esta jurisdicción.")
+        return
+
+    # Tabla combinada de actividades
+    st.markdown("##### 📋 Actividades Auditadas")
+
+    def _delta_str(ant, det):
+        if ant is None or ant == 0.0:
+            return "—"
+        delta = round(det - ant, 4)
+        if abs(delta) < 0.001:
+            return "= Sin variación"
+        arrow = "▲" if delta > 0 else "▼"
+        return f"{arrow} {delta:+.2f} pp"
+
+    _nan = float("nan")
+    df_res = pd.DataFrame([{
+        "Actividad":             i["resultado"].actividad_desc or "—",
+        "NAES":                  i["resultado"].naes or "—",
+        "Alíc. Anterior (%)":    getattr(i["resultado"], "alicuota_anterior", None) or _nan,
+        "Alíc. IA (%)":          i["resultado"].alicuota_ia or i["resultado"].alicuota_sugerida,
+        "Alíc. Definitiva (%)":  (v if (v := getattr(i["resultado"], "alicuota_validada", None)) is not None else _nan),
+        "Variación":             _delta_str(
+                                    getattr(i["resultado"], "alicuota_anterior", None),
+                                    i["resultado"].alicuota_ia or i["resultado"].alicuota_sugerida
+                                 ),
+        "Normativa":             i["resultado"].normativa_ref or "—",
+    } for i in all_items])
+    st.dataframe(
+        df_res, use_container_width=True,
+        column_config={
+            "Actividad": st.column_config.TextColumn(
+                "Actividad", width="large",
+                help="Descripción de la actividad económica según el nomenclador NAES "
+                     "(Nomenclador de Actividades Económicas del Sistema Federal de Recaudación) "
+                     "tal como figura en la normativa provincial."
+            ),
+            "NAES": st.column_config.TextColumn(
+                "NAES",
+                help="Código numérico del Nomenclador de Actividades Económicas del Sistema "
+                     "Federal de Recaudación (NAES), vigente desde 2018 en reemplazo del CUACM. "
+                     "Identifica unívocamente la actividad económica a nivel nacional para la "
+                     "liquidación de Ingresos Brutos bajo el Convenio Multilateral."
+            ),
+            "Alíc. Anterior (%)": st.column_config.NumberColumn(
+                "Alíc. Anterior (%)", format="%.2f",
+                help="Alícuota que el contribuyente venía aplicando en el período anterior, "
+                     "declarada en el archivo de carga. Sirve como base de comparación para "
+                     "detectar variaciones y posibles errores históricos."
+            ),
+            "Alíc. IA (%)": st.column_config.NumberColumn(
+                "Alíc. IA (%)", format="%.2f",
+                help="Tasa determinada por el Agente IA. Incorpora: alícuota base de la normativa, "
+                     "reducción por tramo de volumen de ventas y análisis de la situación especial "
+                     "del contribuyente. Es el dictamen inicial que el especialista debe revisar y confirmar."
+            ),
+            "Alíc. Definitiva (%)": st.column_config.NumberColumn(
+                "Alíc. Definitiva (%)", format="%.2f",
+                help="Alícuota confirmada por el especialista tras la validación. "
+                     "Si el auditor aceptó el criterio IA, coincide con la Alíc. IA. "
+                     "Si lo modificó, refleja su propio criterio técnico. "
+                     "Aparece vacío (—) mientras la actividad no haya sido validada."
+            ),
+            "Variación": st.column_config.TextColumn(
+                "Variación",
+                help="Diferencia en puntos porcentuales (pp) entre la Alíc. IA y la "
+                     "Alíc. Anterior. ▲ indica aumento, ▼ indica reducción. Una variación "
+                     "significativa puede indicar un error previo o un cambio normativo."
+            ),
+            "Normativa": st.column_config.TextColumn(
+                "Normativa", width="medium",
+                help="Ley, decreto o resolución que sustenta la alícuota IA, con el artículo "
+                     "específico recuperado por el motor RAG al momento del análisis. "
+                     "El valor se actualiza con cada reprocesamiento: con la normativa CABA "
+                     "indexada, las actividades de CABA mostrarán sus artículos propios "
+                     "(Ley 6927) en lugar de los de BsAs."
+            ),
+        }
+    )
+
+    # Resúmenes IA — etiquetados por actividad(es) que cubre cada análisis
+    resumenes = [a for a in audits if a.resumen_ia]
+    if resumenes:
+        with st.expander("🤖 Ver resúmenes IA"):
+            for audit in resumenes:
+                # Identificar actividades de este audit para el título
+                acts_de_audit = [i["resultado"] for i in all_items if i["audit"].id == audit.id]
+                if acts_de_audit:
+                    acts_label = " · ".join(
+                        f"NAES {r.naes}" + (f" – {r.actividad_desc[:35]}…" if r.actividad_desc and len(r.actividad_desc) > 35 else f" – {r.actividad_desc}" if r.actividad_desc else "")
+                        for r in acts_de_audit[:4]
+                    )
+                    st.caption(f"**Análisis Técnico** — {acts_label}")
+                resumen_limpio = _re.sub(r'#{1,4}\s*', '', audit.resumen_ia)
+                resumen_limpio = _re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', resumen_limpio)
+                resumen_limpio = resumen_limpio.replace('\n', '<br>')
+                st.markdown(
+                    f'<div style="background:#f0f4fa;border-left:4px solid #1a3a6b;border-radius:6px;'
+                    f'padding:14px 18px;max-height:200px;overflow-y:auto;font-size:0.82rem;'
+                    f'line-height:1.6;color:#222;">{resumen_limpio}</div>',
+                    unsafe_allow_html=True
+                )
+                st.markdown("")
+
+    # Justificaciones por actividad — título incluye NAES y descripción
+    with st.expander("📄 Ver justificaciones IA por actividad"):
+        for i in all_items:
+            r = i["resultado"]
+            naes_label = f"NAES {r.naes}" if r.naes else ""
+            desc_label = r.actividad_desc or ""
+            st.markdown(f"**Análisis Técnico — {desc_label}** {('(' + naes_label + ')') if naes_label else ''}")
+            st.write(r.justificacion or "Sin justificación registrada.")
+            st.divider()
+
+    # Reportes descargables
+    archivos = []
+    for audit in audits:
+        archivos.extend(db.query(ArchivoGenerado).filter(ArchivoGenerado.auditoria_id == audit.id).all())
     if archivos:
         st.markdown("##### 📥 Reportes Generados")
         for arch in archivos:
@@ -272,17 +564,184 @@ def _render_audit_detail(audit, db):
             except FileNotFoundError:
                 st.warning(f"Archivo no encontrado: {arch.nombre_archivo}")
 
-    if st.checkbox("⚙️ Acciones Avanzadas", key=f"adv_{audit.id}"):
-        if st.button("🗑️ Eliminar esta auditoría", use_container_width=True, key=f"del_{audit.id}"):
-            db.query(ArchivoGenerado).filter(ArchivoGenerado.auditoria_id == audit.id).delete()
-            db.query(ResultadoActividad).filter(ResultadoActividad.auditoria_id == audit.id).delete()
-            db.query(Auditoria).filter(Auditoria.id == audit.id).delete()
+    # ── Validación humana ────────────────────────────────────────────────────
+    _render_validacion(juris_code, all_items, db)
+
+    # Precedentes — casos similares en la base de conocimiento
+    naes_codes = list({i["resultado"].naes for i in all_items if i["resultado"].naes and i["resultado"].naes != "000000"})
+    if naes_codes:
+        with st.expander("🔍 Precedentes — casos similares en otros clientes"):
+            try:
+                from memory.case_history import CaseHistory
+                from core.constants import JURISDICCIONES
+                case_history = CaseHistory()
+                cuits_actuales = {a.cuit for a in audits}
+                provincia_name = JURISDICCIONES.get(juris_code, str(juris_code))
+
+                precedentes = []
+                for naes in naes_codes:
+                    casos = case_history.find_similar(
+                        actividades_desc="",
+                        provincia_id=provincia_name,
+                        naes_code=naes,
+                        max_results=10,
+                    )
+                    for c in casos:
+                        if c["cuit"] not in cuits_actuales:
+                            precedentes.append(c)
+
+                # Deduplicar por caso ID
+                seen = set()
+                precedentes_uniq = []
+                for c in precedentes:
+                    if c["id"] not in seen:
+                        seen.add(c["id"])
+                        precedentes_uniq.append(c)
+
+                if not precedentes_uniq:
+                    st.info("No se encontraron precedentes de otros clientes para esta actividad y jurisdicción. "
+                            "Este será el primer caso de referencia.")
+                else:
+                    st.caption(f"{len(precedentes_uniq)} precedente(s) encontrado(s) — criterios similares aplicados a otros contribuyentes.")
+                    def _firma_caso(c):
+                        if not c.get("expert_validated"):
+                            return "🤖 Solo IA"
+                        analista = c.get("analista") or "—"
+                        # El campo analista tiene formato "[Usuario (Equipo)] comentario"
+                        # o simplemente el nombre del analista original
+                        if analista.startswith("[") and "]" in analista:
+                            firma = analista[1:analista.index("]")]
+                        else:
+                            firma = analista
+                        return f"✅ {firma}"
+
+                    df_prec = pd.DataFrame([{
+                        "ID Caso":       c["id"],
+                        "CUIT":          c["cuit"],
+                        "Período":       c.get("periodo", "—"),
+                        "NAES":          c.get("naes_code", "—"),
+                        "Actividad":     (c.get("actividades_desc") or "—")[:60],
+                        "Alíc. (%)":     c.get("final_alicuota") or c.get("alicuota_determinada"),
+                        "Normativa":     f"{c.get('norma_citada','—')} | {c.get('articulo_citado','—')}",
+                        "Criterio":      _firma_caso(c),
+                    } for c in precedentes_uniq])
+                    st.dataframe(
+                        df_prec, use_container_width=True,
+                        column_config={
+                            "ID Caso":   st.column_config.TextColumn("ID Caso", help="Identificador único del caso en la base de conocimiento."),
+                            "CUIT":      st.column_config.TextColumn("CUIT", help="CUIT del contribuyente del caso precedente."),
+                            "Período":   st.column_config.TextColumn("Período", help="Ejercicio fiscal del caso precedente."),
+                            "NAES":      st.column_config.TextColumn("NAES", help="Código de actividad del caso precedente."),
+                            "Actividad": st.column_config.TextColumn("Actividad", width="large", help="Descripción de la actividad analizada en el caso precedente."),
+                            "Alíc. (%)": st.column_config.NumberColumn("Alíc. (%)", format="%.2f", help="Alícuota determinada en ese caso precedente. Útil para validar consistencia de criterio."),
+                            "Normativa": st.column_config.TextColumn("Normativa", help="Norma y artículo citados en el caso precedente."),
+                            "Criterio":  st.column_config.TextColumn("Criterio", help="Indica quién validó el criterio: el especialista y equipo que lo revisó, o si es solo dictamen IA sin validación humana."),
+                        }
+                    )
+            except Exception as e:
+                st.warning(f"No se pudo consultar la base de precedentes: {e}")
+
+    # Acciones avanzadas
+    if st.checkbox("⚙️ Acciones Avanzadas", key=f"adv_juris_{juris_code}"):
+        if st.button("🗑️ Eliminar auditorías de esta jurisdicción", use_container_width=True, key=f"del_juris_{juris_code}"):
+            for audit in audits:
+                db.query(ArchivoGenerado).filter(ArchivoGenerado.auditoria_id == audit.id).delete()
+                db.query(ResultadoActividad).filter(ResultadoActividad.auditoria_id == audit.id).delete()
+                db.query(Auditoria).filter(Auditoria.id == audit.id).delete()
             db.commit()
-            st.success("Auditoría eliminada.")
+            st.session_state.pop("hist_jurisdiccion", None)
+            st.success("Auditorías eliminadas.")
             st.rerun()
 
 
+def _render_todas_jurisdicciones(por_jurisdiccion, db):
+    """Tabla completa con todas las jurisdicciones y sus alícuotas."""
+    from core.constants import JURISDICCIONES
+
+    st.markdown("### 📊 Análisis Completo — Todas las Jurisdicciones")
+
+    rows = []
+    for juris_code in sorted(por_jurisdiccion.keys()):
+        nombre = JURISDICCIONES.get(juris_code, f"Jurisdicción {juris_code}")
+        for audit in sorted(por_jurisdiccion[juris_code], key=lambda a: a.id):
+            resultados = db.query(ResultadoActividad).filter(ResultadoActividad.auditoria_id == audit.id).all()
+            for r in resultados:
+                _v = getattr(r, "alicuota_validada", None)
+                rows.append({
+                    "Cod.":                  juris_code,
+                    "Jurisdicción":          nombre,
+                    "Actividad":             r.actividad_desc or "—",
+                    "NAES":                  r.naes or "—",
+                    "Alíc. IA (%)":          r.alicuota_ia or r.alicuota_sugerida,
+                    "Alíc. Definitiva (%)":  float(_v) if _v is not None else float("nan"),
+                    "Estado":                audit.estado or "—",
+                    "Normativa":             r.normativa_ref or "—",
+                })
+
+    if not rows:
+        st.warning("No hay actividades para mostrar.")
+        return
+
+    df = pd.DataFrame(rows)
+    st.dataframe(
+        df, use_container_width=True,
+        column_config={
+            "Cod.": st.column_config.NumberColumn(
+                "Cod.",
+                help="Código numérico de la jurisdicción provincial según el convenio multilateral "
+                     "(901 = CABA, 902 = Buenos Aires, etc.)."
+            ),
+            "Jurisdicción": st.column_config.TextColumn(
+                "Jurisdicción",
+                help="Nombre de la provincia o jurisdicción fiscal auditada."
+            ),
+            "Actividad": st.column_config.TextColumn(
+                "Actividad", width="large",
+                help="Descripción de la actividad económica según el nomenclador NAES "
+                     "(Nomenclador de Actividades Económicas del Sistema Federal de Recaudación) "
+                     "tal como figura en la normativa provincial."
+            ),
+            "NAES": st.column_config.TextColumn(
+                "NAES",
+                help="Código numérico del Nomenclador de Actividades Económicas del Sistema "
+                     "Federal de Recaudación (NAES), vigente desde 2018 en reemplazo del CUACM. "
+                     "Identifica unívocamente la actividad económica a nivel nacional para la "
+                     "liquidación de Ingresos Brutos bajo el Convenio Multilateral."
+            ),
+            "Alíc. IA (%)": st.column_config.NumberColumn(
+                "Alíc. IA (%)", format="%.2f",
+                help="Tasa determinada por el Agente IA para esta actividad. Incorpora la alícuota "
+                     "base de la normativa, reducción por tramo de volumen y situación especial. "
+                     "Es el dictamen inicial pendiente de validación por el especialista."
+            ),
+            "Alíc. Definitiva (%)": st.column_config.NumberColumn(
+                "Alíc. Definitiva (%)", format="%.2f",
+                help="Alícuota confirmada por el especialista. Si aceptó el criterio IA, coincide "
+                     "con la Alíc. IA. Si lo modificó, refleja su propio criterio técnico. "
+                     "Aparece vacío (—) mientras la actividad no haya sido validada."
+            ),
+            "Estado": st.column_config.TextColumn(
+                "Estado",
+                help="Estado del procesamiento: COMPLETADO (análisis exitoso), "
+                     "ERROR (fallo durante el análisis), PROCESANDO (en curso)."
+            ),
+            "Normativa": st.column_config.TextColumn(
+                "Normativa", width="medium",
+                help="Ley, decreto o resolución que sustenta la alícuota IA, con el artículo "
+                     "específico recuperado por el motor RAG al momento del análisis. "
+                     "El valor se actualiza con cada reprocesamiento: con la normativa CABA "
+                     "indexada, las actividades de CABA mostrarán sus artículos propios "
+                     "(Ley 6927) en lugar de los de BsAs."
+            ),
+        }
+    )
+    st.caption(f"Total: {len(rows)} actividad(es) en {len(por_jurisdiccion)} jurisdicción(es) con datos.")
+
+
 def view_historial():
+    from core.constants import JURISDICCIONES
+    from collections import defaultdict
+
     st.markdown('<h1>Historial de Auditorías</h1>', unsafe_allow_html=True)
 
     db = SessionLocal()
@@ -293,82 +752,66 @@ def view_historial():
         db.close()
         return
 
-    from collections import defaultdict
     por_cuit = defaultdict(list)
     for a in auditorias:
         por_cuit[a.cuit].append(a)
 
     # ══════════════════════════════════════════════════════════════════════════
-    # NIVEL 1 — Selector de Cliente
+    # PASO 1 — Selector de Cliente
     # ══════════════════════════════════════════════════════════════════════════
     st.markdown("#### 👤 Paso 1 — Seleccione un cliente")
     st.caption("Puede escribir el CUIT para filtrar rápidamente.")
 
     cuits_ordenados = sorted(por_cuit.keys())
     cuit_options = {
-        cuit: f"🏢  {cuit}   ·   {len(por_cuit[cuit])} auditoría(s)  ·  "
+        cuit: f"🏢  {cuit}   ·   {len(por_cuit[cuit])} registro(s)  ·  "
               f"Períodos: {', '.join(sorted({a.periodo for a in por_cuit[cuit]}, reverse=True))}"
         for cuit in cuits_ordenados
     }
-
-    # Preservar selección de cliente entre reruns
-    if "hist_cuit" not in st.session_state:
-        st.session_state.hist_cuit = cuits_ordenados[0]
 
     selected_cuit = st.selectbox(
         "Seleccione cliente (CUIT):",
         options=cuits_ordenados,
         format_func=lambda c: cuit_options[c],
-        index=cuits_ordenados.index(st.session_state.hist_cuit) if st.session_state.hist_cuit in cuits_ordenados else 0,
         key="hist_cuit_select",
         label_visibility="collapsed",
     )
-    st.session_state.hist_cuit = selected_cuit
 
-    audits_cliente = sorted(por_cuit[selected_cuit], key=lambda a: (a.periodo, a.id))
+    # Resetear estado hijo cuando cambia el cliente
+    if st.session_state.get("hist_cuit_prev") != selected_cuit:
+        st.session_state.hist_cuit_prev = selected_cuit
+        for k in ["hist_periodo_select", "hist_jurisdiccion", "hist_periodo_prev"]:
+            st.session_state.pop(k, None)
 
-    # Resumen rápido del cliente seleccionado
+    audits_cliente = [a for a in auditorias if a.cuit == selected_cuit]
     periodos_cliente = sorted({a.periodo for a in audits_cliente}, reverse=True)
-    total_audits = len(audits_cliente)
+    juris_cliente = len({a.provincia_id for a in audits_cliente if a.provincia_id})
+
     st.markdown(
-        f"""<div style="background:#f0f4fa;border-radius:8px;padding:10px 16px;margin:8px 0 16px 0;
-            display:flex;gap:32px;align-items:center;">
-            <div><span style="font-size:0.75rem;color:#666;">CUIT</span><br>
-                <span style="font-weight:700;color:#001e40;font-size:1rem;">{selected_cuit}</span></div>
-            <div><span style="font-size:0.75rem;color:#666;">Períodos</span><br>
-                <span style="font-weight:600;color:#001e40;">{' · '.join(periodos_cliente)}</span></div>
-            <div><span style="font-size:0.75rem;color:#666;">Total auditorías</span><br>
-                <span style="font-weight:600;color:#001e40;">{total_audits}</span></div>
-        </div>""",
+        f'<div style="background:#f0f4fa;border-radius:8px;padding:10px 16px;margin:8px 0 16px 0;display:flex;gap:32px;align-items:center;">'
+        f'<div><span style="font-size:0.75rem;color:#666;">CUIT</span><br><span style="font-weight:700;color:#001e40;font-size:1rem;">{selected_cuit}</span></div>'
+        f'<div><span style="font-size:0.75rem;color:#666;">Períodos</span><br><span style="font-weight:600;color:#001e40;">{" · ".join(periodos_cliente)}</span></div>'
+        f'<div><span style="font-size:0.75rem;color:#666;">Jurisdicciones</span><br><span style="font-weight:600;color:#001e40;">{juris_cliente}</span></div>'
+        f'<div><span style="font-size:0.75rem;color:#666;">Total registros</span><br><span style="font-weight:600;color:#001e40;">{len(audits_cliente)}</span></div>'
+        f'</div>',
         unsafe_allow_html=True
     )
-
     st.divider()
 
     # ══════════════════════════════════════════════════════════════════════════
-    # NIVEL 2 — Selector de Auditoría (por período)
+    # PASO 2 — Selector de Período
     # ══════════════════════════════════════════════════════════════════════════
-    st.markdown("#### 📅 Paso 2 — Seleccione el período de auditoría")
+    st.markdown("#### 📅 Paso 2 — Seleccione el período")
 
     por_periodo = defaultdict(list)
     for a in audits_cliente:
         por_periodo[a.periodo].append(a)
 
-    # Construir opciones de período con info de la definitiva
     periodo_options = {}
-    for periodo in periodos_cliente:
-        audits_p = sorted(por_periodo[periodo], key=lambda a: a.id)
-        definitiva = audits_p[-1]
-        n_iter = len(audits_p) - 1
-        iter_str = f"  ·  {n_iter} iteración(es) previa(s)" if n_iter > 0 else ""
-        estado_icon = {"COMPLETADO": "✅", "ERROR": "❌", "PROCESANDO": "⏳"}.get(definitiva.estado or "", "○")
-        periodo_options[periodo] = f"{estado_icon}  Período {periodo}   —   Definitiva ID #{definitiva.id}{iter_str}"
-
-    # Resetear el selector de período cuando cambia el cliente
-    if "hist_cuit_prev" not in st.session_state or st.session_state.hist_cuit_prev != selected_cuit:
-        st.session_state.hist_cuit_prev = selected_cuit
-        if "hist_periodo_select" in st.session_state:
-            del st.session_state["hist_periodo_select"]
+    for p in periodos_cliente:
+        n = len(por_periodo[p])
+        juris_count = len({a.provincia_id for a in por_periodo[p] if a.provincia_id})
+        periodo_options[p] = f"📅  Período {p}   ·   {n} registro(s)   ·   {juris_count} jurisdicción(es)"
 
     selected_periodo = st.selectbox(
         "Seleccione período:",
@@ -378,47 +821,90 @@ def view_historial():
         label_visibility="collapsed",
     )
 
+    # Resetear jurisdicción cuando cambia el período
+    if st.session_state.get("hist_periodo_prev") != selected_periodo:
+        st.session_state.hist_periodo_prev = selected_periodo
+        st.session_state.pop("hist_jurisdiccion", None)
+
+    # Agrupar auditorías del período por jurisdicción
+    audits_periodo = por_periodo[selected_periodo]
+    por_jurisdiccion = defaultdict(list)
+    for a in audits_periodo:
+        if a.provincia_id:
+            por_jurisdiccion[a.provincia_id].append(a)
+    active_codes = set(por_jurisdiccion.keys())
+
     st.divider()
 
     # ══════════════════════════════════════════════════════════════════════════
-    # NIVEL 3 — Detalle de la auditoría definitiva del período seleccionado
+    # PASO 3 — Panel de Jurisdicciones (Opción C: 5×5 + TODAS)
     # ══════════════════════════════════════════════════════════════════════════
-    audits_periodo = sorted(por_periodo[selected_periodo], key=lambda a: a.id)
-    definitiva = audits_periodo[-1]
-    anteriores = audits_periodo[:-1]
+    st.markdown("#### 🗺️ Paso 3 — Seleccione una jurisdicción")
 
-    estado_color = {"COMPLETADO": "#2e7d32", "ERROR": "#c62828", "PROCESANDO": "#e65100"}.get(
-        definitiva.estado or "", "#555"
-    )
-    iter_info = f" · {len(anteriores)} iteración(es) previa(s)" if anteriores else ""
-    st.markdown(
-        f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">'
-        f'<span style="font-size:1.05rem;font-weight:700;color:#001e40;">📋 Auditoría Definitiva — Período {selected_periodo}</span>'
-        f'<span style="background:{estado_color};color:#fff;font-size:0.72rem;font-weight:600;padding:3px 12px;border-radius:12px;">{definitiva.estado}</span>'
-        f'<span style="color:#888;font-size:0.78rem;">ID #{definitiva.id}{iter_info}</span>'
-        f'</div>',
-        unsafe_allow_html=True
-    )
+    selected_juris = st.session_state.get("hist_jurisdiccion", None)
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("CUIT", definitiva.cuit)
-    col2.metric("Ejercicio", definitiva.periodo)
-    col3.metric("Fecha proceso", definitiva.fecha_proceso.strftime("%d/%m/%Y") if definitiva.fecha_proceso else "—")
+    if selected_juris and selected_juris != "TODAS":
+        nombre_sel = JURISDICCIONES.get(selected_juris, str(selected_juris))
+        st.caption(f"▶ Mostrando: **{selected_juris} · {nombre_sel}**  —  haga clic en otra jurisdicción para cambiar.")
+    elif selected_juris == "TODAS":
+        st.caption("▶ Mostrando análisis completo de todas las jurisdicciones.")
 
-    _render_audit_detail(definitiva, db)
+    # 24 jurisdicciones + TODAS = 25 ítems → 5 filas × 5 columnas
+    COLS = 5
+    all_codes = list(JURISDICCIONES.keys())   # 901–924
+    items = all_codes + ["TODAS"]             # 25 ítems
 
-    # Iteraciones previas colapsadas
-    if anteriores:
-        with st.expander(f"🔁 Ver {len(anteriores)} iteración(es) anterior(es) de este período"):
-            for audit_prev in reversed(anteriores):
-                fecha_str = audit_prev.fecha_proceso.strftime("%d/%m/%Y %H:%M") if audit_prev.fecha_proceso else "—"
-                st.markdown(
-                    f"<span style='color:#888;font-size:0.8rem;font-weight:600;'>"
-                    f"Iteración ID #{audit_prev.id} — {fecha_str} — {audit_prev.estado}</span>",
-                    unsafe_allow_html=True
-                )
-                _render_audit_detail(audit_prev, db)
-                st.divider()
+    for row_start in range(0, 25, COLS):
+        row_items = items[row_start:row_start + COLS]
+        cols = st.columns(COLS)
+        for col_idx, item in enumerate(row_items):
+            with cols[col_idx]:
+                if item == "TODAS":
+                    is_sel = (selected_juris == "TODAS")
+                    lbl = "▶ TODAS" if is_sel else "🌐 TODAS"
+                    if st.button(lbl, key="juris_TODAS", use_container_width=True, type="primary"):
+                        st.session_state.hist_jurisdiccion = "TODAS"
+                        st.rerun()
+                else:
+                    code = item
+                    has_data = code in active_codes
+                    is_sel = (selected_juris == code)
+                    n = len(por_jurisdiccion.get(code, []))
+                    if is_sel:
+                        lbl = f"▶ {code}"
+                    elif has_data:
+                        lbl = f"✅ {code}"
+                    else:
+                        lbl = str(code)
+                    tip = f"{JURISDICCIONES[code]}" + (f" — {n} reg." if has_data else " — sin datos")
+                    if has_data:
+                        if st.button(lbl, key=f"juris_{code}", use_container_width=True, help=tip):
+                            st.session_state.hist_jurisdiccion = code
+                            st.rerun()
+                    else:
+                        st.button(lbl, key=f"juris_{code}", use_container_width=True,
+                                  disabled=True, help=tip)
+
+    st.divider()
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # PASO 4 — Detalle
+    # ══════════════════════════════════════════════════════════════════════════
+    if selected_juris is None:
+        st.info("👆 Seleccione una jurisdicción del panel (✅ = tiene datos) o use **🌐 TODAS** para ver el análisis completo.")
+    elif selected_juris == "TODAS":
+        log_actividad(db, "HISTORIAL_CONSULTADO",
+            detalle=f"Vista TODAS las jurisdicciones | Período: {selected_periodo} | CUIT: {selected_cuit}")
+        _render_todas_jurisdicciones(por_jurisdiccion, db)
+    else:
+        juris_audits = por_jurisdiccion.get(selected_juris, [])
+        if juris_audits:
+            log_actividad(db, "HISTORIAL_CONSULTADO",
+                cuit=selected_cuit, periodo=selected_periodo, jurisdiccion_id=selected_juris,
+                detalle=f"Jurisdicción {selected_juris} · {selected_cuit} · {selected_periodo}")
+            _render_jurisdiccion_detail(selected_juris, juris_audits, db)
+        else:
+            st.warning("No hay datos para esta jurisdicción en el período seleccionado.")
 
     db.close()
 
@@ -477,6 +963,73 @@ def view_guia():
     | **Codigo_Jurisdiccion** | Número de jurisdicción (ej: 901 para CABA). | 902 |
     | **Situacion_Especial** | Comentarios para la IA (exenciones, bases). | Exento por ley local |
     """)
+
+def view_actividad():
+    st.markdown('<h1 style="margin-top:0;">Actividad & Métricas</h1>', unsafe_allow_html=True)
+    st.markdown("<p style='color:#666;margin-bottom:1.5rem'>Registro de acciones por usuario y equipo.</p>", unsafe_allow_html=True)
+
+    db = SessionLocal()
+    logs = db.query(ActivityLog).order_by(ActivityLog.timestamp.desc()).all()
+    db.close()
+
+    if not logs:
+        st.info("Aún no hay actividad registrada.")
+        return
+
+    df_log = pd.DataFrame([{
+        "timestamp":    l.timestamp,
+        "usuario":      l.usuario or "—",
+        "equipo":       l.equipo or "—",
+        "accion":       l.accion or "—",
+        "cuit":         l.cuit or "—",
+        "periodo":      l.periodo or "—",
+        "jurisdiccion": l.jurisdiccion_id or "—",
+        "detalle":      l.detalle or "—",
+    } for l in logs])
+
+    # ── Métricas generales ────────────────────────────────────────────────────
+    col1, col2, col3, col4 = st.columns(4)
+    total_consultas   = df_log[df_log["accion"].isin(["CONSULTA_INICIADA","CONSULTA_COMPLETADA"])]["accion"].value_counts().get("CONSULTA_COMPLETADA", 0)
+    total_validadas   = df_log[df_log["accion"] == "VALIDACION_ACEPTADA"].shape[0]
+    total_modificadas = df_log[df_log["accion"] == "VALIDACION_MODIFICADA"].shape[0]
+    usuarios_activos  = df_log["usuario"].nunique()
+
+    col1.metric("Consultas completadas", total_consultas)
+    col2.metric("Validaciones aceptadas", total_validadas)
+    col3.metric("Criterios modificados", total_modificadas, help="Veces que un especialista cambió el criterio IA")
+    col4.metric("Usuarios activos", usuarios_activos)
+
+    st.divider()
+
+    # ── Actividad por acción ──────────────────────────────────────────────────
+    col_graf1, col_graf2 = st.columns(2)
+
+    with col_graf1:
+        st.markdown("##### Acciones por tipo")
+        accion_labels = {
+            "CONSULTA_INICIADA":    "Consultas iniciadas",
+            "CONSULTA_COMPLETADA":  "Consultas completadas",
+            "CONSULTA_ERROR":       "Errores",
+            "VALIDACION_ACEPTADA":  "Validaciones aceptadas",
+            "VALIDACION_MODIFICADA":"Criterios modificados",
+            "HISTORIAL_CONSULTADO": "Consultas de historial",
+        }
+        conteo = df_log["accion"].value_counts().rename(index=accion_labels)
+        st.bar_chart(conteo)
+
+    with col_graf2:
+        st.markdown("##### Acciones por usuario")
+        por_usuario = df_log.groupby(["usuario","equipo"])["accion"].count().reset_index()
+        por_usuario.columns = ["Usuario", "Equipo", "Total acciones"]
+        st.dataframe(por_usuario, use_container_width=True, hide_index=True,
+            column_config={
+                "Usuario": st.column_config.TextColumn("Usuario", help="Nombre del especialista que realizó la acción."),
+                "Equipo":  st.column_config.TextColumn("Equipo", help="Estudio o equipo al que pertenece el usuario."),
+                "Total acciones": st.column_config.NumberColumn("Total acciones"),
+            })
+
+    st.caption(f"Total en el sistema: {len(df_log)} acción(es) registrada(s).")
+
 
 def view_configuracion():
     st.markdown('<h1>Configuración del Sistema</h1>', unsafe_allow_html=True)
@@ -591,6 +1144,82 @@ def view_configuracion():
         st.session_state.config_auth = False
         st.rerun()
 
+    # ── Actividad & Métricas ─────────────────────────────────────────────────
+    st.divider()
+    st.markdown("### 📈 Actividad & Métricas")
+
+    db_log = SessionLocal()
+    logs = db_log.query(ActivityLog).order_by(ActivityLog.timestamp.desc()).all()
+    db_log.close()
+
+    if not logs:
+        st.info("Aún no hay actividad registrada.")
+    else:
+        accion_labels = {
+            "CONSULTA_INICIADA":    "Consultas iniciadas",
+            "CONSULTA_COMPLETADA":  "Consultas completadas",
+            "CONSULTA_ERROR":       "Errores",
+            "VALIDACION_ACEPTADA":  "Validaciones aceptadas",
+            "VALIDACION_MODIFICADA":"Criterios modificados",
+            "HISTORIAL_CONSULTADO": "Consultas de historial",
+        }
+        df_log = pd.DataFrame([{
+            "timestamp":    l.timestamp,
+            "usuario":      l.usuario or "—",
+            "equipo":       l.equipo or "—",
+            "accion":       l.accion or "—",
+            "cuit":         l.cuit or "—",
+            "periodo":      l.periodo or "—",
+            "jurisdiccion": l.jurisdiccion_id or "—",
+            "detalle":      l.detalle or "—",
+        } for l in logs])
+
+        # Métricas
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Consultas", df_log[df_log["accion"] == "CONSULTA_COMPLETADA"].shape[0])
+        col2.metric("Validaciones aceptadas", df_log[df_log["accion"] == "VALIDACION_ACEPTADA"].shape[0])
+        col3.metric("Criterios modificados",  df_log[df_log["accion"] == "VALIDACION_MODIFICADA"].shape[0])
+        col4.metric("Usuarios activos", df_log["usuario"].nunique())
+
+        col_g1, col_g2 = st.columns(2)
+        with col_g1:
+            st.markdown("**Acciones por tipo**")
+            st.bar_chart(df_log["accion"].value_counts().rename(index=accion_labels))
+        with col_g2:
+            st.markdown("**Acciones por usuario / equipo**")
+            por_u = df_log.groupby(["usuario","equipo"])["accion"].count().reset_index()
+            por_u.columns = ["Usuario","Equipo","Total"]
+            st.dataframe(por_u, use_container_width=True, hide_index=True)
+
+        # Log filtrable
+        st.markdown("**Log de actividad**")
+        col_f1, col_f2, col_f3 = st.columns(3)
+        with col_f1:
+            fu = st.selectbox("Usuario:", ["Todos"] + sorted(df_log["usuario"].unique().tolist()), key="cfg_log_u")
+        with col_f2:
+            fe = st.selectbox("Equipo:",  ["Todos"] + sorted(df_log["equipo"].unique().tolist()),  key="cfg_log_e")
+        with col_f3:
+            fa = st.selectbox("Acción:",  ["Todas"]  + sorted(df_log["accion"].unique().tolist()),
+                format_func=lambda x: accion_labels.get(x, x) if x != "Todas" else "Todas", key="cfg_log_a")
+
+        df_f = df_log.copy()
+        if fu != "Todos": df_f = df_f[df_f["usuario"] == fu]
+        if fe != "Todos": df_f = df_f[df_f["equipo"]  == fe]
+        if fa != "Todas": df_f = df_f[df_f["accion"]  == fa]
+
+        df_f = df_f.copy()
+        df_f["timestamp"] = pd.to_datetime(df_f["timestamp"]).dt.strftime("%d/%m/%Y %H:%M")
+        df_f["accion"] = df_f["accion"].map(lambda x: accion_labels.get(x, x))
+        df_f = df_f.rename(columns={
+            "timestamp":"Fecha/Hora","usuario":"Usuario","equipo":"Equipo",
+            "accion":"Acción","cuit":"CUIT","periodo":"Período",
+            "jurisdiccion":"Jurisdicción","detalle":"Detalle"
+        })
+        st.dataframe(df_f, use_container_width=True, hide_index=True,
+            column_config={"Detalle": st.column_config.TextColumn("Detalle", width="large")})
+        st.caption(f"{len(df_f)} registro(s) mostrado(s) — {len(df_log)} total.")
+
+
 # --- RENDER ---
 draw_header()
 
@@ -607,6 +1236,7 @@ with st.sidebar:
     nav_items = [
         ("📤 Carga de Datos",          "Carga de Datos"),
         ("📊 Historial de Auditorías", "Historial de Auditorías"),
+        ("📈 Actividad & Métricas",    "Actividad & Métricas"),
         ("📖 Guía de Uso",             "Guía de Uso"),
         ("⚙️ Configuración",           "Configuración"),
     ]
@@ -670,6 +1300,8 @@ if selected_menu == "Carga de Datos":
     view_carga_datos()
 elif selected_menu == "Historial de Auditorías":
     view_historial()
+elif selected_menu == "Actividad & Métricas":
+    view_actividad()
 elif selected_menu == "Guía de Uso":
     view_guia()
 elif selected_menu == "Configuración":
